@@ -1,0 +1,32 @@
+@(bar){
+    this is a bar tag
+}
+
+@(bardo;bardum){
+    this is a bardum tag
+    @(gliss){some gubberish}
+    @(*ur tag;urt){universally referenced content}
+    @(^pv tag;pvt){
+        parent visible content
+    }
+}
+
+@(foo){
+    @(things){
+        some things are green
+    }
+    @(green things){
+        -frogs
+        -apples
+        -grass
+        -limes
+        -the district line
+    }
+    @($file){/Users/grayt13/.bin/quickref_notes/VivoPhysicalArchitecture.jpg}
+    @($link){www.google.co.uk}
+
+    @(fibble)[bardo]
+}
+
+@(fooalias)[foo]
+

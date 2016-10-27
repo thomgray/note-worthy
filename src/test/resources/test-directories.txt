@@ -1,0 +1,1 @@
+/Users/grayt13/Projects/note-worthy/src/test/scala/resources/stub_note_directories/fooNotes

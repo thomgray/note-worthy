@@ -1,0 +1,2 @@
+@(link){https://www.google.co.uk/webhp?sourceid=chrome-instant&ion=1&espv=2&ie=UTF-8#q=file%20path%20regex}
+@(path){foo.txt}

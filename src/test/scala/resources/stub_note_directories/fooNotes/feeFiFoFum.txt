@@ -1,0 +1,9 @@
+@(fee){
+    @(dribble)[fi fo]
+    @(fi){
+        @(*drop)[fo fum]
+        @(fo){
+            @(fum){content}
+        }
+    }
+}
