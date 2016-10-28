@@ -2,3 +2,4 @@ tasks.txt
 .idea
 *.iml
 target
+.DS_Store

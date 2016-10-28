@@ -43,12 +43,12 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants {
     val labels = firstLine.stripPrefix(chevronPrefix).split(";").map(s=>s.trim).toList
     val string = getLinesInRange(1, _lines.length-1, _lines).mkString("\n")
 
-    ParseResult(string, Some(labels), CONTENT_TAG, List())
+    ParseResult(string, Some(labels), CONTENT_TAG, "")
   }
 
   private def handleStringLine(lines: Array[String]) = {
     val string = lines.mkString("\n")
-    ParseResult(string, None, CONTENT_STRING, List())
+    ParseResult(string, None, CONTENT_STRING, "")
   }
 
   def getRangeOfNextBlock(from: Int): Option[Range] = {

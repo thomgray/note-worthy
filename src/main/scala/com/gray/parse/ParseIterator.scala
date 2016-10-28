@@ -9,7 +9,7 @@ protected[gray] abstract class ParseIterator extends ParseConstants {
 case class ParseResult( string: String,
                         labels: Option[List[String]],
                         description: String,
-                        options: List[String] )
+                        options: String )
 
 
 trait ParseConstants {
@@ -17,6 +17,6 @@ trait ParseConstants {
   val CONTENT_STRING = "string"
   val CONTENT_ALIAS = "alias"
 
-  val PARENT_VISIBLE_OPT = "pvis"
-  val UNIVERSAL_REFERENCE_OPT = "uref"
+  val PARENT_VISIBLE_FLAG = "^"
+  val UNIVERSAL_REFERENCE_FLAG = "*"
 }
