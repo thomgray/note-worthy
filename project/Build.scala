@@ -57,14 +57,6 @@ object Build extends SbtBuild {
           },
           libraryDependencies ++= dependencies
         )
-//        ++
-//        Seq(
-//          resolvers += "Local Ivy repository" at "file://" + Path.userHome + "/.ivy2/local",
-//          resolvers += "BBC Forge Maven Releases" at "https://dev.bbc.co.uk/maven2/releases/",
-//          resolvers += "BBC Forge Maven Snapshots" at "https://dev.bbc.co.uk/maven2/snapshots",
-//          resolvers += "BBC Forge Artifactory" at "https://dev.bbc.co.uk/artifactory/repo",
-//          resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
-//        )
   )
 
 }

@@ -1,0 +1,15 @@
+[[[foo
+hello there
+
+[[[^ things
+- thing1
+- thing2
+]]]
+
+[[[^ other things
+other things are also things of a sort!
+]]]
+
+more foo content
+
+]]]

@@ -1,0 +1,22 @@
+[info] Compiling 1 Scala source to /Users/grayt13/Projects/note-worthy/target/scala-2.11/test-classes...
+[info] MldIteratorSpec:
+[info] MdlIterator
+[info] - should split text into lines
+[info] - should preserve indentation
+[info] getRangeOfNextBlock
+[info] - should find the range of the block starting from the beginning
+[info] - should return a range starting from some way into the string
+[info] - should not return a range if no block exists
+[info] - should not return a range if the next block doesn't close
+[info] nextThing
+[info] - should get the first content tag
+[info] - should get the second content tag
+[info] - should get the first content string
+[info] - should preserve indents
+[info] - should ignore empty whitespace between tags
+[info] Run completed in 204 milliseconds.
+[info] Total number of tests run: 11
+[info] Suites: completed 1, aborted 0
+[info] Tests: succeeded 11, failed 0, canceled 0, ignored 0, pending 0
+[info] All tests passed.
+[success] Total time: 2 s, completed 27-Oct-2016 23:35:06

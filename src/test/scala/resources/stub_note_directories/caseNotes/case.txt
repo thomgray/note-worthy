@@ -1,6 +1,0 @@
-@(Upper Case){
-    skadjbfksdnsf
-}
-@(lower case){
-    ljndkfjgn
-}

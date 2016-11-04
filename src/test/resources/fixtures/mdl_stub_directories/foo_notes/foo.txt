@@ -1,0 +1,20 @@
+[[[foo
+
+foo is a word
+
+    [[[bar
+    bar is also a word
+    ]]]
+
+    [[[diddle
+    i don't think diddle is a word
+    ]]]
+]]]
+
+[[[jam
+jam is a spread
+]]]
+
+[[[marmalade
+marmalade too
+]]]

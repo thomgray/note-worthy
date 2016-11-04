@@ -4,7 +4,7 @@ import com.gray.parse.mdlparse.MdlIterator
 import scala.collection.mutable.ArrayBuffer
 
 trait Parser {
-  private[gray] def getIterator: ParseIterator
+  private[parse] def getIterator: ParseIterator
 
   def parseForResults = {
     val iterator = getIterator

@@ -1,0 +1,89 @@
+[[[git;github;git hub
+
+    [[[cheatsheet
+    github-git-cheat-sheet.pdf
+    ]]]
+
+    get the remote repository url:
+    $ git config --get remote.origin.url
+
+    shows the logical variables
+    $ git config -l
+
+    show the logical variables, including variables in the .git/config file
+    $ git var -l
+
+
+    [[[^branch;branches
+    list branches:
+    $ git branch [-r | -a]
+    -r = remote
+    -a = all
+
+    checkout and create new branch:
+    $ git checkout -b <branch_name>
+
+    prune local branch list:
+    $ git remote update origin --prune
+
+    fetch remote branches:
+    $ git fetch origin
+    ]]]
+
+    [[[remote;origin;updating;update
+    git remote [-v | --verbose]
+    git remote add [-t <branch>] [-m <master>] [-f] [--[no-]tags] [--mirror=<fetch|push>] <name> <url>
+    git remote rename <old> <new>
+    git remote remove <name>
+    git remote set-head <name> (-a | --auto | -d | --delete | <branch>)
+    git remote set-branches [--add] <name> <branch>…​
+    git remote get-url [--push] [--all] <name>
+    git remote set-url [--push] <name> <newurl> [<oldurl>]
+    git remote set-url --add [--push] <name> <newurl>
+    git remote set-url --delete [--push] <name> <url>
+    git remote [-v | --verbose] show [-n] <name>…​
+    git remote prune [-n | --dry-run] <name>…​
+    git remote [-v | --verbose] update [-p | --prune] [(<group> | <remote>)…​]
+    ]]]
+
+    [[[config
+    $ git config [<file-option>] [type] [--show-origin] [-z|--null] name [value [value_regex]]
+    $ git config [<file-option>] [type] --add name value
+    $ git config [<file-option>] [type] --replace-all name value [value_regex]
+    $ git config [<file-option>] [type] [--show-origin] [-z|--null] --get name [value_regex]
+    $ git config [<file-option>] [type] [--show-origin] [-z|--null] --get-all name [value_regex]
+    $ git config [<file-option>] [type] [--show-origin] [-z|--null] [--name-only] --get-regexp name_regex [value_regex]
+    $ git config [<file-option>] [type] [-z|--null] --get-urlmatch name URL
+    $ git config [<file-option>] --unset name [value_regex]
+    $ git config [<file-option>] --unset-all name [value_regex]
+    $ git config [<file-option>] --rename-section old_name new_name
+    $ git config [<file-option>] --remove-section name
+    $ git config [<file-option>] [--show-origin] [-z|--null] [--name-only] -l | --list
+    $ git config [<file-option>] --get-color name [default]
+    $ git config [<file-option>] --get-colorbool name [stdout-is-tty]
+    $ git config [<file-option>] -e | --edit
+
+        [[[link
+        https://git-scm.com/docs/git-config
+        ]]]
+    ]]]
+
+    [[[reith
+    http.proxy config variable:
+    ?...? means optional
+    <...> means variable
+
+    view it:
+    $ git config ?--[get | get-all]? http.proxy
+    > http.proxy=http://www-cache.reith.bbc.co.uk:80
+
+    set it:
+    $ git config --global http.proxy <value>
+
+    unset it:
+    $ git config --global --[unset | unset-all] http.proxy ?<value-regex>?
+
+    add it:
+    $ git config --global --add http.proxy http://www-cache.reith.bbc.co.uk:80
+    ]]]
+]]]
