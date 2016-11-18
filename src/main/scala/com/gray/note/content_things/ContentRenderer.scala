@@ -31,9 +31,10 @@ trait ContentRenderer {
 
   private def renderContentTag(contentTag: ContentTag, width: Int): String = {
     (contentTag.getContents.filter {
+      case string: ContentString => true
       case tag: ContentTag if tag.isParentVisible => true
-      case _ => true
-    } map (renderContent(_, width))).mkString("\n")
+      case _ => false
+    } map (renderContent(_, width))).mkString("\n") + "\n"
   }
 
 }

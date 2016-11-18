@@ -1,14 +1,33 @@
 package com.gray.markdown.parsing
 
 import com.gray.markdown.MdParagraph
+import com.gray.util.Ranj
 
 import scala.collection.mutable
 import scala.util.matching.Regex
-import com.gray.markdown.Range
 
-protected[parsing] abstract class MdParsingRuleBase extends {
+protected[parsing] abstract class MdParsingRuleBase extends MdRegexes {
 
-  protected[parsing] val lines: List[String]
+  protected[parsing] val stringBuffer = new mutable.MutableList[String]()
+
+  protected[parsing] val docString: String
+
+  protected[parsing] lazy val lines: List[String] = initLines(docString)
+
+  protected[parsing] var linkRefs = Map[String, String]()
+
+  protected def initLines(string: String) = {
+    val lns = string.split("\n")
+    val linesBuffer = new mutable.MutableList[String]()
+    lns.foreach { l =>
+      MdLinkRefRegex.findFirstMatchIn(l) match {
+        case None => linesBuffer += l
+        case Some(mtch) => linkRefs = linkRefs + (mtch.group(1) -> mtch.group(2))
+      }
+    }
+    linesBuffer.toList
+  }
+
   val paragraphs: mutable.MutableList[MdParagraph] = new mutable.MutableList[MdParagraph]()
 
   protected[parsing] var marker = 0
@@ -17,7 +36,7 @@ protected[parsing] abstract class MdParsingRuleBase extends {
 
   protected[parsing] def getLine = lines(marker)
 
-  protected def getLines(range: Range) = lines.slice(range.start, range.end)
+  protected def getLines(range: Ranj) = lines.slice(range.start, range.end)
 
   protected def getLines(from: Int, until: Int) = lines.slice(from, until)
 
@@ -30,7 +49,6 @@ protected[parsing] abstract class MdParsingRuleBase extends {
   def lineMatchesAnyRegex(ln: String, regex: Regex*) = regex.exists(_.findFirstIn(ln).isDefined)
 
   def lineMatchesAllRegex(ln: String, regex: Regex*) = !regex.exists(_.findFirstIn(ln).isEmpty)
-
 
   def indexOfNextMatch(regex: Regex, from: Int = 0) = lines.indexWhere(ln => lineMatchesRegex(regex, ln), from) match {
     case -1 => None
@@ -50,7 +68,7 @@ protected[parsing] abstract class MdParsingRuleBase extends {
     case true =>
       lines.indexWhere(lineMatchesRegex(regex2, _), from + 1) match {
         case -1 => None
-        case end => Some(Range(from, end + 1))
+        case end => Some(Ranj(from, end + 1))
       }
     case false => None
   }
@@ -65,8 +83,8 @@ protected[parsing] abstract class MdParsingRuleBase extends {
   def getRangeOfSolidBlock(regex: Regex, from: Int = marker) = regex.findFirstIn(lines(from)) match {
     case Some(_) =>
       lines.indexWhere(l => regex.findFirstIn(l).isEmpty, from + 1) match {
-        case -1 => Some(Range(from, lines.length))
-        case other => Some(Range(from, other))
+        case -1 => Some(Ranj(from, lines.length))
+        case other => Some(Ranj(from, other))
       }
     case None => None
   }

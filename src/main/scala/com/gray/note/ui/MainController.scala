@@ -68,6 +68,7 @@ trait MainController {
     terminal.clear
     if (popResult) historian.popSearchResult(tag)
     println(TagRenderer.getHierarchyDiagram(tag))
+    println()
     println(tag.getFormattedString(terminal.width))
   }
 

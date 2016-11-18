@@ -1,7 +1,8 @@
 package com.gray.parse.mldparse
 
-import com.gray.parse.{ParseConstants, Range}
+import com.gray.parse.ParseConstants
 import com.gray.parse.mdlparse._
+import com.gray.util.Ranj
 import org.scalatest._
 import org.scalatest.MustMatchers._
 
@@ -62,7 +63,7 @@ class MldIteratorSpec extends FlatSpec with ParseConstants{
           |]]]
         """.stripMargin
       val it = MdlIterator(str)
-      val rng = MdlIterator(str).getRangeOfNextBlock(1).get mustBe Range(3,5)
+      val rng = MdlIterator(str).getRangeOfNextBlock(1).get mustBe Ranj(3,5)
     }
 
     it should "not return a range if no block exists" in {

@@ -1,7 +1,7 @@
 package com.gray.parse.mdlparse
 
-import com.gray.parse.{ParseIterator, ParseResult, Range}
-import com.gray.util.Formatting
+import com.gray.parse.{ParseIterator, ParseResult}
+import com.gray.util.{Formatting, Ranj}
 
 class MdlIterator(string: String) extends ParseIterator with MdlParseConstants with Formatting {
   val lines = trimEmptyLines(string).split("(\\n|\\r)")
@@ -12,11 +12,11 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants w
 
   override def  nextThing: Option[ParseResult] = {
     getRangeOfNextBlock(marker) match {
-      case Some(Range(start, end)) if marker < start && !linesAreBlank(marker, start) =>
+      case Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start) =>
         val array = getLinesInRange(marker, start)
         marker = start
         Some(handleStringLine(array))
-      case Some(Range(start, end)) =>
+      case Some(Ranj(start, end)) =>
         val array = getLinesInRange(start, end)
         marker = end
         Some(handleTagLines(array))
@@ -54,7 +54,7 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants w
     ParseResult(string1, None, CONTENT_STRING, "")
   }
 
-  def getRangeOfNextBlock(from: Int): Option[Range] = {
+  def getRangeOfNextBlock(from: Int): Option[Ranj] = {
     getLineNumberOfNextOpenLine(from) match {
       case Some(i) =>
         var lr = 1
@@ -62,7 +62,7 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants w
           val nextLine = lines(j).trim
           if (nextLine.startsWith(openLinePrefix)) lr += 1
           else if (nextLine.startsWith(closeLinePrefix)) lr -= 1
-          if (lr==0) return Some(Range(i, (j+1)))
+          if (lr==0) return Some(Ranj(i, (j+1)))
         }
         None
       case None => None

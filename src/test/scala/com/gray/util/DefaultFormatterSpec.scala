@@ -68,4 +68,52 @@ class DefaultFormatterSpec extends FlatSpec with MustMatchers {
                      |klineblahblahblah""".stripMargin
     strWrapped mustBe expected
   }
+
+  "padAndAlignBlock" should "right align and pad to the specified width" in {
+    val string =
+      """this is a
+        |string
+        |which I want to align
+        |rightly""".stripMargin
+    val raligned = MdFormatter.padAndAlignBlock(string, align = "right")
+    raligned mustBe
+      """            this is a
+        |               string
+        |which I want to align
+        |              rightly""".stripMargin
+  }
+
+  "stitchString" should "stitch two string together when they are uniform width and equal length" in {
+    val str1 =
+      """this is a string|
+        |spanning three  |
+        |lines           |""".stripMargin
+    val str2 =
+      """this is another  |
+        |string that also |
+        |spans three lines|""".stripMargin
+    val str = MdFormatter.stitchString(List(str1, str2))
+    str mustBe
+      """this is a string|this is another  |
+        |spanning three  |string that also |
+        |lines           |spans three lines|""".stripMargin
+
+  }
+
+  it should "stitch two strings together when they are of different lengths" in {
+    val str1 =
+      """this is
+        |a string
+        |spanning
+        |several
+        |lines""".stripMargin
+    val str2 = " 1. "
+    val str = MdFormatter.stitchString(List(str2, str1))
+    str mustBe
+      """ 1. this is
+        |    a string
+        |    spanning
+        |    several
+        |    lines""".stripMargin
+  }
 }

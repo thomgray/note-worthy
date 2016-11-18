@@ -76,7 +76,10 @@ object Terminal {
     console.readLine()
   }
 
-  def clear = console.clearScreen()
+  def clear = {
+    console.clearScreen()
+  }
+
   def restore = terminal.restore()
 
 }

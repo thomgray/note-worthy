@@ -2,6 +2,7 @@ package com.gray.markdown.parsing
 
 import com.gray.markdown.formatting.MdFormatter
 import com.gray.markdown._
+import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FlatSpec, MustMatchers}
@@ -12,10 +13,12 @@ class MdParserSpec extends FlatSpec with MustMatchers with MockitoSugar with Bef
 
   class TestParser(string: String) extends MdParsing {
     override val factory: MdFactory = stubFactory
-    override protected[parsing] val lines: List[String] = string.split("\n").toList
+    override protected[parsing] val docString: String = string
   }
 
-  val stubMdList = MdList(List(MdBulletedListItem(MdString(""), 0)))
+  val stubMdBulletList = MdBulletList(List(MdBulletListItem(List(MdString("")))))
+  val stubMdNumberList = MdNumberList(List(MdNumberListItem(List(MdString("")), 1)))
+  val stubMdCheckboxList = MdCheckList(List(MdCheckListItem(List(MdString("")), true)))
   val stubMdLiteral = MdLiteral("")
   val stubMdString = MdString("")
   val stubMdHeader = MdHeader("",0)
@@ -87,21 +90,30 @@ class MdParserSpec extends FlatSpec with MustMatchers with MockitoSugar with Bef
   }
 
   it should "parse lists" in {
+    val list1str = List(
+      "list item 1",
+      """2
+        |- third
+        |continuing on line
+        |""".stripMargin
+    )
+    val list2str = List(
+      """another list
+        |     -this is literal part of the inner list item
+        |""".stripMargin
+    )
 
-    val list1str =
-      """- list item 1
-        |- 2
-        |  - third
-        |  continuing on line""".stripMargin.split("\n").toList
-    val list2str =
-      """- another list
-        |  - inner list item
-        |            -this is literal part of the inner list item""".stripMargin.split("\n").toList
+    val list3str = List(
+      """[ ] checkbox
+        |- inner bullet""".stripMargin,
+      "[x] next checkbox\n"
+    )
 
-    val list1 = MdList(List(MdBulletedListItem(MdString("foo"), 0)))
-    when(stubFactory.makeList(list1str)) thenReturn stubMdList
-    when(stubFactory.makeList(list2str)) thenReturn stubMdList
+    when(stubFactory.makeMdBulletList(Matchers.any[List[String]]())) thenReturn stubMdBulletList
+    when(stubFactory.makeMdNumberList(Matchers.any[List[String]]())) thenReturn stubMdNumberList
+    when(stubFactory.makeMdCheckboxList(Matchers.any[List[String]]())) thenReturn stubMdCheckboxList
     when(stubFactory.makeMdIndentedLiteral(List("            -this is a separate literal"))) thenReturn MdLiteral("")
+
     val str =
       """
         |- list item 1
@@ -109,16 +121,24 @@ class MdParserSpec extends FlatSpec with MustMatchers with MockitoSugar with Bef
         |  - third
         |  continuing on line
         |
-        |- another list
-        |  - inner list item
-        |            -this is literal part of the inner list item
+        |
+        |1. another list
+        |        -this is literal part of the inner list item
+        |
+        |
+        |- [ ] checkbox
+        |  - inner bullet
+        |- [x] next checkbox
+        |
         |
         |            -this is a separate literal
         |""".stripMargin
+
     val result = parse(str)
 
-    verify(stubFactory).makeList(list1str)
-    verify(stubFactory).makeList(list2str)
+    verify(stubFactory).makeMdBulletList(list1str)
+    verify(stubFactory).makeMdNumberList(list2str)
+    verify(stubFactory).makeMdCheckboxList(list3str)
     verify(stubFactory).makeMdIndentedLiteral(List("            -this is a separate literal"))
     verifyNoMoreInteractions(stubFactory)
   }

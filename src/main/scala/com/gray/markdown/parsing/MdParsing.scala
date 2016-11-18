@@ -1,112 +1,160 @@
 package com.gray.markdown.parsing
 
 import com.gray.markdown._
+import com.gray.util.{Formatting, Ranj}
 
-import scala.collection.mutable
 import scala.util.matching.Regex
-import com.gray.markdown.Range
 
-protected[parsing] abstract class MdParsing extends MdParsingRuleBase  with MdRegexes {
+protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdRegexes with Formatting {
 
   val factory: MdFactory
   import factory._
 
   def parse() = {
     while (marker < lines.length) {
-      checks.find(check => check()) match {
-        case None => println(s"No rules for line: $getLine")
-        case _ =>
+      var result: Option[MdParagraph] = None
+
+      checks.find { check =>
+        result = check()
+        result.isDefined
+      }
+
+      result match {
+        case None => stringBuffer += getLine
+        case Some(mtch) =>
+          flushStringBuffer
+          paragraphs += mtch
       }
       marker += 1
+      if (marker == lines.length) flushStringBuffer
     }
   }
 
-  val checks = List[() => Boolean](
+  val checks = List[() => Option[MdParagraph]](
     checkEmptyLineBlock,
     checkHeader,
+    checkHorizontalLine,
     checkCodeBlock,
     checkIndentedLiteral,
-    checkList
-//    checkBlockQuote
+    checkList,
+    checkBlockQuote
   )
 
+  def flushStringBuffer = if (stringBuffer.nonEmpty) {
+    paragraphs += makeMdString(stringBuffer.toList)
+    stringBuffer.clear
+  }
+
+  def checkHorizontalLine() = if (lineMatchesRegex(horizontalLineRegex, getLine)) {
+    Some(MdHorizontalLine())
+  } else None
+
   def checkHeader() = if (lineMatchesRegex(headerRegex)) {
-    val header = makeMdHeader(getLine)
-    addToBuffer(header)
-    true
-  } else false
+    Some(makeMdHeader(getLine))
+  } else None
 
   def checkCodeBlock() = getRangeOfSpanRegex(codeBeginRegex, codeEndRegex) match {
     case Some(range) =>
       marker = range.end - 1
       val lines = getLines(range)
-      addToBuffer(makeMdCodeBlock(lines))
-      true
-    case None => false
+      Some(makeMdCodeBlock(lines))
+    case None => None
   }
 
   def checkEmptyLineBlock() = getRangeOfSolidBlock(emptyLineRegex) match {
     case Some(range) =>
       marker = range.end - 1
-      addToBuffer(MdBreak())
-      true
-    case None => false
+      Some(MdBreak())
+    case None => None
   }
 
   def checkIndentedLiteral() = getRangeOfSolidBlock(indentedLiteralRegex) match {
     case Some(range) =>
       marker = range.end - 1
-      println("FOUND INDENTED LITERAL AT: "+range)
-      println("Last line = "+lines.last)
-      addToBuffer(makeMdIndentedLiteral(getLines(range)))
-      true
-    case None => false
+      Some(makeMdIndentedLiteral(getLines(range)))
+    case None => None
   }
 
   def checkBlockQuote() = lineMatchesRegex(blockQuoteRegex) match {
-    case false => false
+    case false => None
     case true =>
       val range = lines.indexWhere({ ln =>
-        lineMatchesAnyRegex(ln, emptyLineRegex, bulletListItemRegexBegin, checkListItemRegexBegin)
+        lineMatchesAnyRegex(ln, emptyLineRegex, bulletListItemRegex, checkListItemRegex)
       }, marker + 1) match {
-        case -1 => Range(marker, lines.length)
-        case other => Range(marker, other)
+        case -1 => Ranj(marker, lines.length)
+        case other => Ranj(marker, other)
       }
       marker = range.end - 1
-      val quote = makeMdQuoteBlock(getLines(range))
+      Some(makeMdQuoteBlock(getLines(range)))
   }
 
-  def checkList() = anyMatchingRegex(getLine, listBeginRegexes) match {
-      case None => false
-      case Some(regex) =>
-        var previous = getLine
-        val range = lines.indexWhere({ str =>
-          val stop = checkListItemAfterItem(previous, str)
-          previous = str
-          stop
-        }, marker+1) match {
-          case -1 => Range(marker, lines.length)
-          case other => Range(marker, other)
-        }
-        marker = range.end-1
-        addToBuffer(makeList(getLines(range)))
-        true
+  def checkBulletList() = checkListGeneral(bulletListItemRegex)
+
+  def checkNumberList() = checkListGeneral(numberedListItemRegex)
+
+  def checkCheckboxList() = checkListGeneral(checkListItemRegex)
+
+  def checkList() = {
+    val regexes = List(checkListItemRegex, bulletListItemRegex, numberedListItemRegex)
+    var result: Option[MdList] = None
+    regexes.find { regex =>
+      checkListGeneral(regex) match {
+        case res@Some(par) => result = res
+          marker -= 1     /*  decrement marker as we will have overshot it.
+                              We're now sitting on the next paragraph, but
+                              we want to be at the end of this paragraph  */
+          true
+        case _ => false
+      }
     }
+    result
+  }
 
-//  private def checkListItemAfterItem(previous: String, next: String) = if (anyMatchingRegex(next, listItemRegexes).isDefined) {
-//    val allowableIndent = listItemPrefixRegex.findFirstIn(previous).get.length + 3
-//    val actualIndent = "^ *".r.findFirstIn(next).get.length
-//    if (actualIndent <= allowableIndent) true
-//    else false
-//  } else false
+  private def checkListGeneral(itemRegex: Regex) = {
+    var itemPackets = List.empty[String]
+    while (marker < lines.length && (checkListItem(itemRegex) match {
+      case Some(str) => itemPackets = itemPackets :+ str
+        marker += 1 // must increment marker for next check, but this puts us over so we decrement later
+        true
+      case None => false
+    })) {}
+    (itemPackets, itemRegex) match {
+      case (list, _) if list.isEmpty => None
+      case (list, `bulletListItemRegex`) =>
+        Some(makeMdBulletList(list))
+      case (list, `checkListItemRegex`) =>
+        Some(makeMdCheckboxList(list))
+      case (list, `numberedListItemRegex`) =>
+        Some(makeMdNumberList(list))
+      case (_, regex) => throw new RuntimeException(s"Must call this method with bullet, checkbox or number list item regex, you provided $regex")
+    }
+  }
 
-  private def checkListItemAfterItem(previous: String, next: String) = anyMatchingRegex(next, Seq(blockQuoteRegex, emptyLineRegex)).isDefined
-
-
+  // hello
+  def checkListItem(itemRegex: Regex) = lineMatchesRegex(itemRegex) match {
+    case false => None
+    case true =>
+      val lengthOfIndent = bulletOrNumberPrefix.findFirstIn(getLine).get.length
+      val whitespacePrefix = concatenate(" ", lengthOfIndent)
+      var lastLineBlank = false
+      val range = lines.indexWhere({ str =>
+        val thisLineBlank = lineMatchesRegex(emptyLineRegex, str)
+        val breakDueToDoubleBlank = thisLineBlank && lastLineBlank
+        lastLineBlank = thisLineBlank
+        breakDueToDoubleBlank || !(str.startsWith(whitespacePrefix) || thisLineBlank)
+      }, marker + 1) match {
+        case -1 => Ranj(marker, lines.length)
+        case other => Ranj(marker, other)
+      }
+      val firstLine = getLine.substring(lengthOfIndent)
+      val rest = getLines(range.start + 1, range.end).map(_.stripPrefix(whitespacePrefix))
+      marker = range.end - 1
+      Some((firstLine :: rest).mkString("\n"))
+  }
 
 }
 
 protected[parsing] class MdParsingBot(string: String) extends MdParsing {
-  override val lines: List[String] = string.split("(\\n|\\r)").toList
-  override val factory: MdFactory = new MdFactory {}
+  override val factory: MdFactory = new DefaultMdFactory
+  override protected[parsing] val docString: String = string
 }

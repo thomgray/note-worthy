@@ -33,7 +33,7 @@ trait ContentLoader extends ParseConstants {
 
   def getContentFromFile(path: String) = {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
-    val string = io.Source.fromFile(path).mkString
+    val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
     val content = getContent(string)
     for {
       content0 <- content

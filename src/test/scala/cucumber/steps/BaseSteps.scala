@@ -21,19 +21,3 @@ class BaseSteps extends FlatSpec with ScalaDsl with EN with MustMatchers {
   }
 
 }
-
-object ResultHolder {
-  var contentTags: Option[Array[ContentTag]] = None
-  var content: Option[Array[Content]] = None
-  var string: Option[String] = None
-
-  var any: Any = Unit
-
-  def reset = {
-    contentTags = None
-    content = None
-    string = None
-
-    any = Unit
-  }
-}
