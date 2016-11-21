@@ -2,8 +2,6 @@ package com.gray.note.ui
 
 import java.io.File
 
-import scala.sys.process._
-
 object Editor {
   def openVi = {
     val pr = Runtime.getRuntime.exec("vim /tmp/tmpfile")

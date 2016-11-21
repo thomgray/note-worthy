@@ -1,6 +1,7 @@
 package com.gray.parse
 
 import com.gray.parse.mdlparse.MdlIterator
+
 import scala.collection.mutable.ArrayBuffer
 
 trait Parser {

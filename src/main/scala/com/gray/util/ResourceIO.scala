@@ -1,6 +1,6 @@
 package com.gray.util
 
-import java.io.{File, FileNotFoundException, PrintWriter}
+import java.io.{FileNotFoundException, PrintWriter}
 
 trait IO {
   val directoriesFile: String

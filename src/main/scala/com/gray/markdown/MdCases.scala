@@ -26,16 +26,17 @@ abstract class MdListItem() extends MdItem {
 
 case class MdString(string: String) extends MdParagraph {
   override def toString: String = string
+  var links : List[MdLink] = List.empty[MdLink]
 }
 
 ///List
-case class MdBulletList(override val items: List[MdBulletListItem]) extends MdList
+case class MdBulletList(override val items: List[MdBulletListItem]) extends MdList {setTier(0)}
 case class MdBulletListItem(override val paragraphs: List[MdParagraph]) extends MdListItem
 
-case class MdNumberList(override val items: List[MdNumberListItem]) extends MdList
+case class MdNumberList(override val items: List[MdNumberListItem]) extends MdList {setTier(0)}
 case class MdNumberListItem(override val paragraphs: List[MdParagraph], number: Int) extends MdListItem
 
-case class MdCheckList(override val items: List[MdCheckListItem]) extends MdList
+case class MdCheckList(override val items: List[MdCheckListItem]) extends MdList {setTier(0)}
 case class MdCheckListItem(override val paragraphs: List[MdParagraph], checked: Boolean) extends MdListItem
 
 /// block classes

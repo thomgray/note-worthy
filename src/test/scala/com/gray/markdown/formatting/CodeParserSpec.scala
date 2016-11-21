@@ -1,7 +1,7 @@
 package com.gray.markdown.formatting
 
-import org.scalatest._
 import org.scalatest.MustMatchers._
+import org.scalatest._
 
 import scala.io.AnsiColor
 

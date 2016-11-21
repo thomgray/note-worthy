@@ -2,8 +2,7 @@ package cucumber.steps
 
 import com.gray.util.Ranj
 import com.gray.util.attributed_string.{Attribute, AttributeValidator, AttributedString}
-import cucumber.api.PendingException
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.MustMatchers
 
 import scala.io.AnsiColor
 import scala.util.matching.Regex

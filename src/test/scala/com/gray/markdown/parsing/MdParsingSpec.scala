@@ -2,8 +2,8 @@ package com.gray.markdown.parsing
 
 import com.gray.markdown._
 import org.mockito.Matchers._
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FlatSpec, MustMatchers}
 
 class MdParsingSpec extends FlatSpec with MustMatchers  with MockitoSugar with BeforeAndAfter with MdRegexes {

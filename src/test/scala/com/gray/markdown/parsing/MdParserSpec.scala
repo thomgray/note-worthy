@@ -1,6 +1,5 @@
 package com.gray.markdown.parsing
 
-import com.gray.markdown.formatting.MdFormatter
 import com.gray.markdown._
 import org.mockito.Matchers
 import org.mockito.Mockito._

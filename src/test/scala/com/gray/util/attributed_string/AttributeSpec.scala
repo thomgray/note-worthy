@@ -1,7 +1,7 @@
 package com.gray.util.attributed_string
 
-import org.scalatest.{FlatSpec, MustMatchers}
 import com.gray.util.Ranj
+import org.scalatest.{FlatSpec, MustMatchers}
 
 import scala.io.AnsiColor
 

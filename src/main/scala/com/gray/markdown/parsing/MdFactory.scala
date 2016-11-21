@@ -2,9 +2,6 @@ package com.gray.markdown.parsing
 
 import com.gray.markdown._
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-
 trait MdFactory extends MdRegexes {
 
   def makeMdCodeBlock(lines: List[String]): MdCodeBlock
@@ -80,6 +77,7 @@ class DefaultMdFactory extends MdFactory {
 
   //String making
 
+  //todo add link analysis and inline formatting here
   override def makeMdString(lines: List[String]) = {
     val string = lines.map { line =>
       if (matchString(" {2,}$".r, line)) line.replaceAll(" +", " ").trim + "\n"

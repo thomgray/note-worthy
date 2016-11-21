@@ -2,8 +2,6 @@ package com.gray.util.attributed_string
 
 import com.gray.util.Ranj
 
-import scala.collection.mutable
-import scala.io.AnsiColor
 import scala.io.AnsiColor._
 import scala.util.matching.Regex
 

@@ -19,4 +19,5 @@ trait ParseConstants {
 
   val PARENT_VISIBLE_FLAG = "^"
   val UNIVERSAL_REFERENCE_FLAG = "*"
+  val CONTENT_INVISIBLE_FLAG = "-"
 }

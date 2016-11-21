@@ -2,9 +2,7 @@ package com.gray.util.attributed_string
 
 import com.gray.util.Ranj
 
-import scala.collection.generic._
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 case class Attribute(range: Ranj, formats: Formats) {
   val formatString = formats.formatString

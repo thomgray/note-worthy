@@ -1,11 +1,7 @@
-import sbt._
-import sbt.{Build => SbtBuild}
 import sbt.Keys._
-import sbtassembly.Plugin._
+import sbt.{Build => SbtBuild, _}
 import sbtassembly.Plugin.AssemblyKeys._
-import org.scalatra.sbt._
-import com.earldouglas.xsbtwebplugin.PluginKeys._
-import com.earldouglas.xsbtwebplugin.WebPlugin._
+import sbtassembly.Plugin._
 import templemore.sbt.cucumber.CucumberPlugin
 
 object Build extends SbtBuild {

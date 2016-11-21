@@ -1,13 +1,17 @@
 package cucumber.steps
 
+import com.gray.note.content_things.ContentTag
 import com.gray.parse._
 
 class ParsingSteps extends BaseSteps with ParseConstants {
 
   var parser: Option[Parser] = None
+  var tag : Option[ContentTag] = None
+
 
   Before() { scenario =>
     parser = None
+    tag = None
   }
 
   Given("""^an mdl string exists with one base tag and nested tags$""") { () =>
@@ -21,14 +25,22 @@ class ParsingSteps extends BaseSteps with ParseConstants {
   Given("""^an mdl string exists defining a parent visible tag$""") { () =>
     rawString =
       s"""[[[$PARENT_VISIBLE_FLAG tag
-         |blah blah blah
-         |]]]
+          |blah blah blah
+          |]]]
       """.stripMargin
   }
 
   Given("""^an mdl string exists defining a universal reference tag$""") { () =>
-    rawString=
+    rawString =
       s"""[[[$UNIVERSAL_REFERENCE_FLAG tag
+          |blah blah
+          |]]]
+       """.stripMargin
+  }
+
+  Given("""^an mdl string exists defining a content invisible tag$""") { () =>
+    rawString =
+      s"""[[[$CONTENT_INVISIBLE_FLAG tag
          |blah blah
          |]]]
        """.stripMargin
@@ -77,13 +89,24 @@ class ParsingSteps extends BaseSteps with ParseConstants {
     parseResult.get.description mustBe description
   }
 
-  Then("""^the result is (universally referenced|parent visible)$""") { (resultType: String) =>
+  Then("""^the result is (universally referenced|parent visible|content invisible)$""") { (resultType: String) =>
     val description = resultType match {
       case "universally referenced" => UNIVERSAL_REFERENCE_FLAG
       case "parent visible" => PARENT_VISIBLE_FLAG
+      case "content invisible" => CONTENT_INVISIBLE_FLAG
     }
     parseResult.get.options must include(description)
   }
+
+
+  When("""^a tag is initialised with that result$"""){ () =>
+    tag = Some(new ContentTag(parseResult.get))
+  }
+
+  Then("""^the tag is content invisible$"""){ () =>
+    tag.get.isContentVisible mustBe false
+  }
+
 
 
 }

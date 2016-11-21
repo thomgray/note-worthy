@@ -1,7 +1,5 @@
 package cucumber.steps
 
-import com.gray.note.Config
-import com.gray.note.content_things.{Content, ContentTag}
 import com.gray.parse.ParseResult
 import cucumber.api.scala.{EN, ScalaDsl}
 import org.scalatest.{FlatSpec, MustMatchers}

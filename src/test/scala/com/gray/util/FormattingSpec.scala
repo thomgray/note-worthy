@@ -1,7 +1,6 @@
 package com.gray.util
 
 import org.scalatest._
-import org.scalatest.MustMatchers._
 
 class FormattingSpec extends FlatSpec with MustMatchers with Formatting {
 

@@ -5,7 +5,6 @@ import java.util
 import scala.tools.jline.TerminalFactory
 import scala.tools.jline.console.ConsoleReader
 import scala.tools.jline.console.completer.Completer
-import scala.sys.process._
 
 
 object Terminal {

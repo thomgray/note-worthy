@@ -1,6 +1,6 @@
 package com.gray.note
 
-import com.gray.note.ui.{MainController, Terminal}
+import com.gray.note.ui.MainController
 
 import scala.io.AnsiColor._
 

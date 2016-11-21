@@ -3,7 +3,7 @@ package cucumber.steps
 import java.io.PrintWriter
 
 import com.gray.note.Config
-import com.gray.note.content_things.{Content, ContentTag}
+import com.gray.note.content_things.ContentTag
 import com.gray.note.handling.ContentHandler
 
 class ContentHandlerSteps extends BaseSteps {

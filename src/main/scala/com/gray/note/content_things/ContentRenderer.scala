@@ -21,10 +21,12 @@ trait ContentRenderer {
 
 
   private def renderStringAsTxt(contentString: ContentString, width: Int) = {
-    contentString.getString
+    mdFormatter.formatString(contentString.getString, width)
   }
 
   private def renderStringAsMd(contentString: ContentString, width: Int) = {
+    val mdParagraphs = MdParser.parse(contentString.getString)
+
     val strings = MdParser.parse(contentString.getString) map (mdFormatter.renderParagraph(_, width))
     strings.mkString("\n\n")
   }

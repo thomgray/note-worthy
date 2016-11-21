@@ -39,6 +39,16 @@ Feature: Parsing with MDL Parser
     Then the result is a content tag
     And the result is universally referenced
 
+    Scenario: Initialising tags with the content invisible flag
+      Given an mdl string exists defining a content invisible tag
+      When the file is parsed with an mdl parser
+      And we take the 1st item of the result
+      Then the result is a content tag
+      And the result is content invisible
+      #and ...
+      When a tag is initialised with that result
+      Then the tag is content invisible
+
 
 
 

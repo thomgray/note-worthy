@@ -41,9 +41,8 @@ object MdFormatter extends DefaultFormatter with MdCharacterConstants with CodeP
     AttributedString.mkStringWithLines(lines).toString
   }
 
-  def renderHorizonalLine(width: Int) = {
-    concatenate("─", width)
-  }
+  def renderHorizonalLine(width: Int) = concatenate("─", width)
+
 
   def renderParagraph(paragraph: MdParagraph, width: Int): String = paragraph match {
     case list: MdList => renderList(list, width)
@@ -80,6 +79,7 @@ object MdFormatter extends DefaultFormatter with MdCharacterConstants with CodeP
 
   def renderString(string: MdString, width: Int) = {
     //todo do something with url regexes
+    //todo inline formatting
     var str = string.string
     formatString(string.string, width)
   }

@@ -76,7 +76,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
     *
     * @return
     */
-  def isContentVisible = true //TODO implement somehow
+  def isContentVisible = !parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
 
   def getQueryString : String = {
     if (parentTag.isDefined) parentTag.get.getQueryString + getTitleString

@@ -36,7 +36,7 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants w
     }
     val firstLine = _lines.head
 
-    val chevronPrefix = "^\\[{3,}(\\*|\\^)*".r.findFirstIn(firstLine).get
+    val chevronPrefix = s"^\\[{3,}(\\$PARENT_VISIBLE_FLAG|\\$UNIVERSAL_REFERENCE_FLAG|\\$CONTENT_INVISIBLE_FLAG| )*".r.findFirstIn(firstLine).get
 
     val labels = firstLine.stripPrefix(chevronPrefix).split(";").map(s=>s.trim).toList
     val string = getLinesInRange(1, _lines.length-1, _lines).mkString("\n")
@@ -44,6 +44,7 @@ class MdlIterator(string: String) extends ParseIterator with MdlParseConstants w
     var argString = ""
     if (chevronPrefix.contains(PARENT_VISIBLE_FLAG)) argString += PARENT_VISIBLE_FLAG
     if (chevronPrefix.contains(UNIVERSAL_REFERENCE_FLAG)) argString += UNIVERSAL_REFERENCE_FLAG
+    if (chevronPrefix.contains(CONTENT_INVISIBLE_FLAG)) argString += CONTENT_INVISIBLE_FLAG
 
     ParseResult(string, Some(labels), CONTENT_TAG, argString)
   }

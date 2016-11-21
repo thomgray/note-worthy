@@ -1,14 +1,15 @@
 package com.gray.note.ui
 
-import com.gray.markdown.formatting.MdFormatter
 import com.gray.note.Config
 import com.gray.note.content_things.{ContentRenderer, ContentTag}
 import com.gray.note.handling.ContentHandler
-import com.gray.parse.{ParseConstants, ParseResult}
+
+import scala.collection.mutable
 
 trait MainController {
   val terminal = Terminal
   val historian = SearchHistorian
+  val commands = mutable.Map[String, String]()
 
   val handler = ContentHandler(Config.liveDirectories)
 
@@ -20,7 +21,6 @@ trait MainController {
       terminal.readLine.trim match {
         case "exit" | "quit" => continue = false; terminal.restore
         case ".." => if (historian.currentTag.isDefined && historian.currentTag.get.parentTag.isDefined) {
-          println("DOING ..")
           val newTag = historian.currentTag.get.parentTag.get
           printTag(newTag)
         }

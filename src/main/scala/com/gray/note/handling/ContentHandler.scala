@@ -1,7 +1,6 @@
 package com.gray.note.handling
 
 import com.gray.note.content_things.{ContentLoader, ContentTag, MdlLoader}
-import com.gray.parse.{ParseConstants, ParseResult}
 import com.gray.util.ResourceIO
 
 trait ContentHandler {
