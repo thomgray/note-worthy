@@ -1,15 +1,30 @@
 package com.gray.note.content_things
 
+import com.gray.markdown.MdParagraph
 import com.gray.parse.ParseResult
 import com.gray.util.Formatting
+
+import scala.reflect.{ClassTag, classTag}
 
 class ContentTag(result: ParseResult) extends ContentTagLikeThing(result) with Formatting {
 
   private var _contents: List[Content] = List.empty
 
   private[content_things] def setContents(contents: List[Content]) = _contents = contents
+
+  def getTagContents = _contents.filter(t => t.isInstanceOf[ContentTag]).asInstanceOf[List[ContentTag]]
+
+  def get[T <: Content : ClassTag] = {
+    val clazz = implicitly[ClassTag[T]].runtimeClass
+    _contents.filter(clazz.isInstance(_)).asInstanceOf[List[T]]
+  }
+
   def getContents = _contents
-  def getTagContents = _contents.filter(t=>t.isInstanceOf[ContentTag]).asInstanceOf[List[ContentTag]]
+
+  def getMdParagrahs: List[MdParagraph] = getContents.flatMap {
+    case string: ContentString => string.paragraphs().getOrElse(List.empty)
+    case tag: ContentTag => tag.getMdParagrahs
+  }
 
   override def isParaphrase: Boolean = false
 
@@ -18,15 +33,15 @@ class ContentTag(result: ParseResult) extends ContentTagLikeThing(result) with F
   def getAllNestedTags: List[ContentTag] = this +: getTagContents.flatMap(_.getAllNestedTags)
 
   override def getString: String = {
-    val includedContent = _contents.filter{
+    val includedContent = _contents.filter {
       case tag: ContentTagLikeThing => tag.isParentVisible
       case _ => true
     }
     (includedContent map {
-      case tag : ContentTag =>
+      case tag: ContentTag =>
         val title = tag.getTitleString
         val body = indentString(tag.getString)
-        UNDERLINED + title + RESET +"\n"+body
+        UNDERLINED + title + RESET + "\n" + body
       case other => other.getString
     }).mkString("\n\n")
   }

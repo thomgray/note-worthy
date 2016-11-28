@@ -1,15 +1,21 @@
 package com.gray.note.ui
 
+import java.awt.event.{ActionEvent, ActionListener}
 import java.util
 
+import apple.laf.JRSUIUtils.InternalFrame
+
 import scala.tools.jline.TerminalFactory
-import scala.tools.jline.console.ConsoleReader
+import scala.tools.jline.console.{ConsoleReader, KeyMap}
 import scala.tools.jline.console.completer.Completer
+import scala.tools.jline.console.internal.ConsoleRunner
 
 
 object Terminal {
   val terminal = TerminalFactory.create()
   val console = new ConsoleReader
+  console.setKeyMap("vi")
+
   console.setPrompt("\u270E ")
 
   console.addCompleter(new Completer {
@@ -39,6 +45,7 @@ object Terminal {
     val process =  Runtime.getRuntime.exec(Array[String]("vi", "/tmp/tempFile"))
     terminal.reset()
     console.readLine()
+
   }
 
 
@@ -72,6 +79,11 @@ object Terminal {
   def height = terminal.getHeight
 
   def readLine = {
+//    val input = console.getInput
+//    input.read() match {
+//      case 'c' => print("C")
+//      case _ =>
+//    }
     console.readLine()
   }
 
@@ -80,5 +92,21 @@ object Terminal {
   }
 
   def restore = terminal.restore()
+
+  def reset = TerminalFactory.reset()
+
+  def runVi(): Unit ={
+    val cmd =  "/Users/grayt13/Projects/note-worthy/src/main/script/runvi.sh"
+    println("GOT HERE 1")
+    val proc = Runtime.getRuntime.exec(Array("vim", "/tmp/test.txt"))
+    println("GOT HERE 2")
+    TerminalFactory.configure(TerminalFactory.UNIX)
+    val exit = proc.waitFor()
+    println(s"FINISHED WITH THE MAIN BIT. Exit code = ")
+  }
+
+  def special: Unit ={
+    console.readCharacter()
+  }
 
 }

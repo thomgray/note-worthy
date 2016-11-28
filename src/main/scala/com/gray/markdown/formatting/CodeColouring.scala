@@ -9,7 +9,15 @@ import scala.collection.mutable
 import scala.io.AnsiColor
 import scala.util.matching.Regex
 
-trait CodeParser extends AnsiColor {
+trait CodeColouring extends AnsiColor {
+
+  val colourSchemeJava: Map[String, String] = Map.empty
+  val colourSchemeScala: Map[String, String] = Map.empty
+
+  val CSKeyBackGroundColour = "backgroundColour"
+  val CSKeyPlainCodeColour = "plainCodeColour"
+  val CSKeyCommentColour = "commentColour"
+  val CSKeyStringColour = "commentColour"
 
   def gerRangesForRegex(string: String, regex: Regex) = regex.findAllMatchIn(string).map(m => Ranj(m.start, m.end)).toList
 
@@ -19,11 +27,20 @@ trait CodeParser extends AnsiColor {
     str.segment(commentRegex).flatMap { s =>
       if (!s.string.matches(commentRegex.toString())) {
         s.segment(tripleQuoteRegex).flatMap { ss =>
-          if (!ss.string.startsWith("\"\"\"")){
+          if (!matches(ss.string, "^s?\"\"\"".r)){
             ss.segment(scalaSingleQuoteRegex)
           }else List(ss)
         }
       } else List(s)
+    }
+  }
+
+  private def segment(str: AttributedString, regexes: Regex *): List[AttributedString] = {
+    if (regexes.isEmpty) List(str)
+    else str.segment(regexes.head) flatMap { s =>
+      if (regexes.length>1 && !matches(s.string, regexes.head)) {
+        segment(s, regexes.drop(1):_*)
+      }else List(s)
     }
   }
 
@@ -32,19 +49,23 @@ trait CodeParser extends AnsiColor {
     val transform = segmented map { string =>
       var _str = string
       if (matches(_str.string, "^(\\/\\/|\\/\\*)".r)){
-        _str = _str.addAttribute(Seq(YELLOW))
-        _str = _str.addAttributeForRegex("\\\\".r, Seq(MAGENTA))
-      }
-      else if (matches(_str.string, "^s?\"\"\"".r)){
-        _str = _str.addAttribute(Seq(CYAN))
+        _str = _str.addAttribute(Seq(GREEN))
       }
       else if (matches(_str.string, "^s?\"".r)){
         _str = _str.addAttribute(Seq(CYAN))
+        if (!matches(_str.string, "^s?\"\"\"".r)){
+          _str = _str.addAttributeForRegex("\\\\(u[0-9a-f]{4}|.)".r, Seq(RED))
+        }
+        if (_str.string.startsWith("s")){
+          _str = _str.addAttributeForRegexGroups("(?<!\\$)(\\$)(?!\\$)(\\w+)".r, Map(1 -> Seq(WHITE), 2 -> Seq(MAGENTA)))
+          _str = _str.addAttributeForRegex("\\$\\$".r, Seq(RED))
+        }
       }else{
         _str = _str.addAttributeForRegex(keyWordsRegex(protectedWordsScala), Seq(RED))
-        _str = _str.addAttributeForRegex(keyWordsRegex(operationWordsScala), Seq(BLUE))
         _str = _str.addAttributeForRegex(keyWordsRegex(scalaBasicTypes), Seq(BLUE))
-        _str = _str.addAttributeForRegexGroups(scalaFunctionRegex, Map(2 -> Seq(GREEN)))
+        _str = _str.addAttributeForRegexGroups(scalaFunctionRegex, Map(2 -> Seq(YELLOW)))
+        _str = _str.addAttributeForRegex("\\b\\d+\\b".r, Seq(MAGENTA))
+        _str = _str.addAttributeForRegexGroups("\\b(var +|val +)(\\w+)".r, Map(2 -> Seq(MAGENTA)))
 
       }
       _str
@@ -54,8 +75,10 @@ trait CodeParser extends AnsiColor {
 
   /// general
   private val tripleQuoteRegex = "s?\"{3,}.*?\"{3,}".r
-  private val scalaSingleQuoteRegex = """s?"([^"]|\\")*[^\\]"""".r
-  private val singleQuoteRegex = """"([^"]|\\")*[^\\]"""".r
+  private val scalaSingleQuoteRegex = "s?\".*?((?<!\\\\)\")".r
+  private val scalaQuote = "s?\"{3,}(.|\\n)*?\"{3,}|s?\".*?((?<!\\\\)\")".r
+
+  private val singleQuoteRegex = "\".*?((?<!\\\\)\")".r
 
   private val commentRegex = """(\/{2,}.*(\n|$)|\/\*(.|\n)*?\*\/)""".r
 
@@ -65,6 +88,7 @@ trait CodeParser extends AnsiColor {
 
   //  private def keyWordsRegex(string: String) = s"(^|\\s)(($string)(\\s+|$$))+".r
   private def keyWordsRegex(string: String) = s"\\b($string)\\b".r
+  private def keySymbolRegex(string: String) = s"(\\b|\\s)($string)(\\b|\\s)".r
 
   private def segmentStringWithRegex(string: String, regex: Regex) = {
     val outBuffer = new mutable.MutableList[String]()
@@ -80,32 +104,11 @@ trait CodeParser extends AnsiColor {
 
 
   //scala
-  private val protectedWordsScala = "def|val|var|this|if|else|case|for|while|do|match|try|throw|catch|return|class|trait|object|public|private|protected|abstract|implicit|import|package|extends|with"
-  private val operationWordsScala = "\\+|-|->|=>|<-"
+  private val protectedWordsScala = "def|val|var|this|if|else|case|for|yield|while|do|match|try|throw|catch|return|class|trait|object|public|private|protected|abstract|implicit|import|package|extends|with"
+  private val operationWordsScala = "\\+|-|->|=>|<-|&&|\\|\\|"
   private val scalaBasicTypes = "String|Boolean|Int|Double|Float|List|Array|Map|Seq"
   private val scalaFunctionRegex = "\\b(def +)(\\w+)\\b".r
-  private val scalaVarValRegex = "\\b(val +|var +)(\\w+)\\b".r
 
-  def colorScalaCode(string: String, fgColor: String) = {
-    val segmented = splitCodeAndStringsScala(string)
-    (segmented map { str =>
-      if (matches(str, "^s?\"".r)) {
-        var _str = "\\$(\\w+|\\{.+\\})".r.replaceAllIn(str, m => fgColor + Matcher.quoteReplacement(m.toString) + CYAN)
-        _str = "\\\\.".r.replaceAllIn(_str, m => MAGENTA + Matcher.quoteReplacement(m.toString()) + CYAN)
-        CYAN + _str + fgColor
-      }
-      else if (matches(str, "^(\\/\\/|\\/\\*)".r)) YELLOW + str + fgColor
-      else {
-        var _str = str
-        _str = scalaFunctionRegex.replaceAllIn(_str, m => m.group(1) + GREEN + m.group(2) + fgColor)
-        _str = scalaVarValRegex.replaceAllIn(_str, m => m.group(1) + MAGENTA + m.group(2) + fgColor)
-        _str = keyWordsRegex(protectedWordsScala).replaceAllIn(_str, m => RED + m.toString() + fgColor)
-        _str = s"($operationWordsScala)".r.replaceAllIn(_str, m => YELLOW + m.group(1) + fgColor)
-        _str = keyWordsRegex(scalaBasicTypes).replaceAllIn(_str, m => BLUE + m.toString() + fgColor)
-        _str
-      }
-    }).mkString
-  }
 
   private[formatting] def splitCodeAndStringsScala(string: String) = {
     def segmentTripleQuote(string: String) = segmentStringWithRegex(string, tripleQuoteRegex)

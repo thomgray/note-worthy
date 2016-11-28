@@ -15,10 +15,15 @@ trait MainController {
 
   implicit val renderer = new ContentRenderer() {}
 
+  def specialCommand: Unit = {
+    Terminal.special
+  }
+
   def mainLoop = {
     var continue = true
     while (continue){
       terminal.readLine.trim match {
+        case str if str.matches("^:.*") => specialCommand
         case "exit" | "quit" => continue = false; terminal.restore
         case ".." => if (historian.currentTag.isDefined && historian.currentTag.get.parentTag.isDefined) {
           val newTag = historian.currentTag.get.parentTag.get
@@ -69,8 +74,9 @@ trait MainController {
     if (popResult) historian.popSearchResult(tag)
     println(TagRenderer.getHierarchyDiagram(tag))
     println()
-    println(tag.getFormattedString(terminal.width))
+    println(renderer.renderTag(tag, terminal.width))//tag.getFormattedString(terminal.width))
   }
+
 
 }
 

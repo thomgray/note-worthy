@@ -8,6 +8,7 @@ object Main {
   val mainController = MainController
 
   def main(array: Array[String]): Unit = {
+//    mainController.terminal.runVi()
     mainController.mainLoop
   }
 
@@ -24,4 +25,5 @@ object Main {
   def printHelp = {
 
   }
+
 }

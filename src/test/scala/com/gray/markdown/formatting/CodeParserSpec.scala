@@ -6,7 +6,7 @@ import org.scalatest._
 import scala.io.AnsiColor
 
 class CodeParserSpec extends FlatSpec with AnsiColor {
-  val testParser = new CodeParser() {}
+  val testParser = new CodeColouring() {}
   "splitCodeAndStringScala" should "separate strings from code" in {
     val str =  """this is code and "this is string" and this is more code s"and this is more string""""
     val split = testParser.splitCodeAndStringsScala(str)

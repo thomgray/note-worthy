@@ -1,6 +1,6 @@
 package com.gray.note.ui
 
-import com.gray.note.content_things.ContentTag
+import com.gray.note.content_things.{Content, ContentTag}
 
 import scala.io.AnsiColor
 
@@ -13,7 +13,7 @@ object TagRenderer extends AnsiColor{
 
   def getContentDiagram(tag: ContentTag) = {
     var str = "── "+BOLD+tag.getTitleString+RESET
-    val contents = tag.getTagContents
+    val contents = tag.getTagContents.filter(_.isContentVisible)
     for (i <- contents.indices; tg = contents(i)){
       val line = if(i==contents.length-1) "└─ " else "├─ "
       str = str+tab+line+tg.getTitleString
@@ -31,7 +31,7 @@ object TagRenderer extends AnsiColor{
       indent += tab
     }
     if (tag.getContents.nonEmpty) {
-      val contents = tag.getTagContents
+      val contents = tag.getTagContents.filter(_.isContentVisible)
       for (i <- contents.indices; tg = contents(i)) {
         if (i == contents.length-1) str = str + s"\n$indent└─ " + tg.getTitleString
         else str = str + s"\n$indent├─ " + tg.getTitleString

@@ -1,6 +1,6 @@
 package com.gray.markdown.parsing
 
-import com.gray.markdown.MdParagraph
+import com.gray.markdown.{MdLinkRef, MdParagraph}
 import com.gray.util.Ranj
 
 import scala.collection.mutable
@@ -14,7 +14,7 @@ protected[parsing] abstract class MdParsingRuleBase extends MdRegexes {
 
   protected[parsing] lazy val lines: List[String] = initLines(docString)
 
-  protected[parsing] var linkRefs = Map[String, String]()
+  protected[parsing] var linkRefs = List.empty[MdLinkRef]
 
   protected def initLines(string: String) = {
     val lns = string.split("\n")
@@ -22,7 +22,7 @@ protected[parsing] abstract class MdParsingRuleBase extends MdRegexes {
     lns.foreach { l =>
       MdLinkRefRegex.findFirstMatchIn(l) match {
         case None => linesBuffer += l
-        case Some(mtch) => linkRefs = linkRefs + (mtch.group(1) -> mtch.group(2))
+        case Some(mtch) => linkRefs = linkRefs :+ MdLinkRef(mtch.group(2), mtch.group(1))
       }
     }
     linesBuffer.toList

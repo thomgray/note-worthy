@@ -1,5 +1,6 @@
 package com.gray.note.content_things
 
+import com.gray.markdown.MdParagraph
 import com.gray.parse.{ParseConstants, ParseResult}
 
 import scala.io.AnsiColor
@@ -13,8 +14,8 @@ abstract class Content extends AnsiColor with ParseConstants{
 
   def getString: String
 
-  def getFormattedString(width: Int)(implicit renderer: ContentRenderer): String = renderer.renderContent(this, width)
-  def getFormattedString(implicit renderer: ContentRenderer): String = getFormattedString(0)(renderer)
+//  def getFormattedString(width: Int)(implicit renderer: ContentRenderer): String = renderer.renderContent(this, width)
+//  def getFormattedString(implicit renderer: ContentRenderer): String = getFormattedString(0)(renderer)
 
   override def toString: String = getString
 }
@@ -87,11 +88,17 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
 class ContentString(str: String) extends Content {
   private var _format = "txt"
 
+  private var _mdParagraphs: Option[List[MdParagraph]] = None
+
+  def setParagraphs(paragraphs: List[MdParagraph]) = _mdParagraphs = Some(paragraphs)
+  def paragraphs() = _mdParagraphs
+
   def setFormat(format: String) = _format = format
 
   def format = _format
 
   override def getString: String = str
+
 }
 
 

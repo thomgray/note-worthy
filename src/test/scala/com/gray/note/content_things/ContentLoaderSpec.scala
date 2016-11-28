@@ -34,10 +34,13 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     val tags = mdlLoader.getContent(str)
     tags.length mustBe 1
     val baseTag = tags.head.asInstanceOf[ContentTag]
-    baseTag.getContents.length mustBe 3
-    baseTag.getContents(0) mustBe a [ContentString]
-    baseTag.getContents(1) mustBe a [ContentTag]
-    baseTag.getContents(2) mustBe a [ContentString]
+    val contents = baseTag.getContents
+    val gets = baseTag.get[ContentString]
+    gets.map(_.paragraphs())
+    contents.length mustBe 3
+    contents(0) mustBe a [ContentString]
+    contents(1) mustBe a [ContentTag]
+    contents(2) mustBe a [ContentString]
   }
 
 }

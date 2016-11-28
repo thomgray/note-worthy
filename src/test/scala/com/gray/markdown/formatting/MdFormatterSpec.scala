@@ -4,7 +4,7 @@ import com.gray.markdown._
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class MdFormatterSpec extends FlatSpec with MustMatchers with MdCharacterConstants {
-  val formatter = MdFormatter
+  val formatter = MdFormatter()
 
   "renderList[Bullet]" should "print linear properly" in {
     val item1 = MdBulletListItem(List(MdString("Hello")))

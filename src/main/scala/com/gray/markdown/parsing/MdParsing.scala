@@ -41,7 +41,7 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
   )
 
   def flushStringBuffer = if (stringBuffer.nonEmpty) {
-    paragraphs += makeMdString(stringBuffer.toList)
+    paragraphs += makeMdString(stringBuffer.toList, linkRefs)
     stringBuffer.clear
   }
 
@@ -130,7 +130,6 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
     }
   }
 
-  // hello
   def checkListItem(itemRegex: Regex) = lineMatchesRegex(itemRegex) match {
     case false => None
     case true =>

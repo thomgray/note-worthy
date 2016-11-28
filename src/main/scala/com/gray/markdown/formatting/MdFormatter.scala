@@ -7,7 +7,7 @@ import com.gray.util.attributed_string.AttributedString
 
 import scala.io.AnsiColor
 
-object MdFormatter extends DefaultFormatter with MdCharacterConstants with CodeParser with Regexes {
+class MdFormatter(linkRefs: List[MdLinkRef]) extends DefaultFormatter with MdCharacterConstants with CodeColouring with Regexes {
 
 
   def renderQuoteBlock(quote: MdQuoteBlock, width: Int) = {
@@ -52,7 +52,8 @@ object MdFormatter extends DefaultFormatter with MdCharacterConstants with CodeP
     case quote: MdQuoteBlock => renderQuoteBlock(quote, width)
     case header: MdHeader => renderHeader(header, width)
     case hLine: MdHorizontalLine => renderHorizonalLine(width)
-    case other => other.toString
+    case MdPlainString(plainString) => formatString(plainString, width)
+    case other => "*** HAVEN'T IMPLEMENTED RENDERING FOR THIS YET ***\n"+other.toString
   }
 
   def renderList(list: MdList, width: Int)= {
@@ -80,17 +81,21 @@ object MdFormatter extends DefaultFormatter with MdCharacterConstants with CodeP
   def renderString(string: MdString, width: Int) = {
     //todo do something with url regexes
     //todo inline formatting
-    var str = string.string
-    formatString(string.string, width)
+
+    var attributedString = AttributedString(string.string)
+    string.links.reverse.foreach { tuple =>
+      val (link, range) = tuple
+      val linkStr = AttributedString(link.inlineString.getOrElse(link.url), Seq(BLUE))
+//      val linkStr = (attributedString.substring(range) + AttributedString(subscript(link.index))).addAttribute(Seq(BLUE))
+      attributedString = attributedString.substring(0, range.start) + linkStr + attributedString.substring(range.end)
+    }
+    attributedString.wrapLines(width).toString
   }
 
   def renderLiteral(literal: MdLiteral, width: Int) = {
-    val lines = literal.string.split("\n").toList
-    val longestLine = lines.foldLeft(0)((length, line) => if (line.length > length) line.length else length ) + 1
-    val paddedLines = lines.map(line => line.padTo(longestLine, " ").mkString)
-    paddedLines.map(line => " " + WHITE_B + BLACK + " " + line + RESET).mkString("\n")
+    val strlines = padAndAlignBlock(formatString(literal.string, width-2)).split("\n")
+    strlines.map(line => " " + WHITE_B + BLACK + " " + line + RESET).mkString("\n")
   }
-
 
 }
 
@@ -129,5 +134,9 @@ trait MdCharacterConstants {
       case other => other
     }
   }
+}
+
+object MdFormatter {
+  def apply(linkRefs: List[MdLinkRef] = List.empty): MdFormatter = new MdFormatter(linkRefs)
 }
 
