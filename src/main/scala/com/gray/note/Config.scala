@@ -6,8 +6,8 @@ object Config {
   var environment = LIVE
 
 
-  val liveDirectories = "src/main/resources/directories.txt"
-  val testDirectories = "src/test/resources/test-directories.txt"
+  val liveDirectories = "/directories.txt"
+  val testDirectories = "/test-directories.txt"
 
   val tabEscapeString = ">>"
   val standardTab = "    "
@@ -15,4 +15,7 @@ object Config {
   val spitOutIndicator = ">"
   val dropBackCommand = ".."
   val remindCommand = "."
+
+  val urlOpenCommand = "+"
+  val resetCurrentTagCommand = "/"
 }

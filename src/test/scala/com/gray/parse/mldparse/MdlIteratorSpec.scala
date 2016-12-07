@@ -5,8 +5,9 @@ import com.gray.parse.mdlparse._
 import com.gray.util.Ranj
 import org.scalatest.MustMatchers._
 import org.scalatest._
+import org.scalatest.exceptions.TestFailedException
 
-class MldIteratorSpec extends FlatSpec with ParseConstants{
+class MdlIteratorSpec extends FlatSpec with ParseConstants{
 
     "MdlIterator" should "split text into lines" in {
       val str = """hello there
@@ -194,12 +195,15 @@ class MldIteratorSpec extends FlatSpec with ParseConstants{
     val it = MdlIterator(str)
     it.nextThing match {
       case Some(thing) => thing.string mustBe "body"
+      case None => assert (false)
     }
     it.nextThing match {
       case Some(thing) => thing.string mustBe "body"
+      case None => assert (false)
     }
     it.nextThing match {
       case Some(thing) => thing.string mustBe "  body"
+      case None => assert (false)
     }
   }
 

@@ -61,7 +61,7 @@ class MdFormatter(linkRefs: List[MdLinkRef]) extends DefaultFormatter with MdCha
     for (item <- list.items) {
       val markLength = 5
       val textWidth = width -  markLength - 1
-      val stringBody = item.paragraphs.map(renderParagraph(_, textWidth)).mkString("\n")
+      val stringBody = item.items.map(renderParagraph(_, textWidth)).mkString("\n")
       val bullet = item match {
         case MdCheckListItem(_,checked) => "   " + (if (checked) BOX_CHECKED_GREEN else BOX_UNCHECKED) + " "
         case MdBulletListItem(_) => "   " + bulletForTier(item.tier) + " "

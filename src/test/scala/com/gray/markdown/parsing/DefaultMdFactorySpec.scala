@@ -25,7 +25,6 @@ class DefaultMdFactorySpec extends FlatSpec with MustMatchers{
   it should "find referenced links" in {
     val string =  """this is a string with a [google] reference as well as a [go to google][google] reference"""
     val links = factory.getLinks(string, List(MdLinkRef("www.google.com", "google")))
-    links.foreach(l => println(l._1.url + "; " + l._1.inlineString) )
     links.length mustBe 2
 
     links(0)._1.url mustBe "www.google.com"

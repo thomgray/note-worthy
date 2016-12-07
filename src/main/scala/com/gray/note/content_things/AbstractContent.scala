@@ -18,6 +18,8 @@ abstract class Content extends AnsiColor with ParseConstants{
 //  def getFormattedString(implicit renderer: ContentRenderer): String = getFormattedString(0)(renderer)
 
   override def toString: String = getString
+
+  val filePath: String
 }
 
 /**
@@ -85,7 +87,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
   }
 }
 
-class ContentString(str: String) extends Content {
+class ContentString(str: String, path: String = "") extends Content {
   private var _format = "txt"
 
   private var _mdParagraphs: Option[List[MdParagraph]] = None
@@ -98,6 +100,8 @@ class ContentString(str: String) extends Content {
   def format = _format
 
   override def getString: String = str
+
+  override val filePath: String = path
 
 }
 

@@ -2,14 +2,15 @@ package cucumber.steps
 
 import com.gray.note.content_things.ContentTag
 import com.gray.parse._
+import com.gray.parse.mdlparse.MdlIterator
 
 class ParsingSteps extends BaseSteps with ParseConstants {
 
-  var parser: Option[Parser] = None
-  var tag : Option[ContentTag] = None
+  var parser: Option[ParseIterator] = None
+  var tag: Option[ContentTag] = None
 
 
-  Before() { scenario =>
+  Before { scenario =>
     parser = None
     tag = None
   }
@@ -41,14 +42,14 @@ class ParsingSteps extends BaseSteps with ParseConstants {
   Given("""^an mdl string exists defining a content invisible tag$""") { () =>
     rawString =
       s"""[[[$CONTENT_INVISIBLE_FLAG tag
-         |blah blah
-         |]]]
+          |blah blah
+          |]]]
        """.stripMargin
   }
 
   When("""^the file is parsed with an mdl parser$""") { () =>
-    parser = Some(MdlParser(rawString))
-    parseResults = Some(parser.get.parseForResults)
+    parser = Some(MdlIterator(rawString))
+    parseResults = Some(parser.get.iterate)
   }
 
   When("""^we parse the (\d+)(st|nd|rd|th) item of the result$""") { (i: Int, arg0: String) =>
@@ -98,15 +99,13 @@ class ParsingSteps extends BaseSteps with ParseConstants {
     parseResult.get.options must include(description)
   }
 
-
-  When("""^a tag is initialised with that result$"""){ () =>
+  When("""^a tag is initialised with that result$""") { () =>
     tag = Some(new ContentTag(parseResult.get))
   }
 
-  Then("""^the tag is content invisible$"""){ () =>
+  Then("""^the tag is content invisible$""") { () =>
     tag.get.isContentVisible mustBe false
   }
-
 
 
 }

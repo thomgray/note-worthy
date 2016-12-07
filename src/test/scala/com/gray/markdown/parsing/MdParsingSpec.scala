@@ -248,7 +248,7 @@ class MdParsingSpec extends FlatSpec with MustMatchers  with MockitoSugar with B
 
     val parser = testParser(str)
     parser.lines.contains("[foo]: www.google.com") mustBe false
-    parser.linkRefs mustBe Map("foo" -> "www.google.com")
+    parser.linkRefs mustBe List(MdLinkRef("www.google.com", "foo"))
   }
 
 }

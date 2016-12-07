@@ -1,14 +1,13 @@
 package com.gray.note.ui
 
-import java.awt.event.{ActionEvent, ActionListener}
 import java.util
 
-import apple.laf.JRSUIUtils.InternalFrame
+import com.gray.note.Config
 
 import scala.tools.jline.TerminalFactory
-import scala.tools.jline.console.{ConsoleReader, KeyMap}
+import scala.tools.jline.console.ConsoleReader
 import scala.tools.jline.console.completer.Completer
-import scala.tools.jline.console.internal.ConsoleRunner
+import sys.process._
 
 
 object Terminal {
@@ -21,7 +20,9 @@ object Terminal {
   console.addCompleter(new Completer {
     override def complete(s: String, i: Int, list: util.List[CharSequence]): Int = {
       val options = MainController.getAutocompletionOptions(s.trim)
-      if (options.length==1) {
+      if (s.trim startsWith Config.resetCurrentTagCommand){
+        -1
+      }else if (options.length==1) {
         console.putString(options.head.stripPrefix(s.trim))
         0
       }
@@ -32,10 +33,50 @@ object Terminal {
         console.putString(remainder)
         0
       }else {
-        console.killLine()
-        0
+        -1
       }
     }
+  })
+
+  console.addCompleter(new Completer() {
+    override def complete(s: String, i: Int, list: util.List[CharSequence]): Int = {
+      val string = s.trim.stripPrefix("/").trim
+      val baseTags = MainController.searchEngine.getBaseTags
+      baseTags.map(_.getTitleString).filter(_.startsWith(string)) match {
+        case list if list.length == 1 =>
+          console.putString(list.head.stripPrefix(string.trim))
+          0
+        case list if list.length > 1 =>
+          console.print("\n"+list.mkString("\t")+"\n")
+          console.drawLine()
+          val remainder = finishStringWithAutocompleteOptions(list, string)
+          console.putString(remainder)
+          0
+        case _ => -1
+      }
+    }
+  })
+
+  console.addCompleter(new Completer {
+    override def complete(s: String, i: Int, list: util.List[CharSequence]): Int =
+      if (s.trim.startsWith(Config.urlOpenCommand)) {
+        val string = s.trim.stripPrefix(Config.urlOpenCommand).trim
+        val links = MainController.resultHandler.currentTagURLS.map(l=>l.inlineString.getOrElse(l.url))
+        links.filter(_.startsWith(string)) match {
+          case list if list.length == 1 =>
+            console.putString(list.head.stripPrefix(string.trim))
+            0
+          case list if links.length > 1 =>
+            console.print("\n"+list.mkString("\t")+"\n")
+            console.drawLine()
+            val remainder = finishStringWithAutocompleteOptions(list, string)
+            console.putString(remainder)
+            0
+          case list => -1
+        }
+
+      0
+    }else -1
   })
 
   def tryThis = {
@@ -56,13 +97,13 @@ object Terminal {
     } else ""
   }
 
-  def getCommonStringPrefix(autocompletes: List[String]): String = {
-    var _string = autocompletes.headOption.getOrElse("")
-    for (label <- autocompletes if !label.equals(_string)) {
-      _string = getLargestCommonSubstring(label, _string)
-    }
-    _string
+
+  def getCommonStringPrefix(autocompletes: List[String]): String = autocompletes match {
+    case head :: list  =>
+      list.foldRight(head)(getLargestCommonSubstring)
+    case _ => ""
   }
+
 
   def getLargestCommonSubstring(string1: String, string2: String): String = {
     val shortest = if (string1.length < string2.length) string1 else string2
@@ -79,21 +120,15 @@ object Terminal {
   def height = terminal.getHeight
 
   def readLine = {
-//    val input = console.getInput
-//    input.read() match {
-//      case 'c' => print("C")
-//      case _ =>
-//    }
     console.readLine()
   }
 
   def clear = {
-    console.clearScreen()
+//    "printf \\033c".!
+    "tput reset".!
   }
 
   def restore = terminal.restore()
-
-  def reset = TerminalFactory.reset()
 
   def runVi(): Unit ={
     val cmd =  "/Users/grayt13/Projects/note-worthy/src/main/script/runvi.sh"

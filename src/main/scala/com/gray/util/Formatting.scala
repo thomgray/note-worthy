@@ -21,6 +21,7 @@ trait Formatting extends AnsiColor{
   def splitLines(string: String) = string.split("(\\r|\\n)")
   
   def trueLength(string: String) = unitalicise(string.replaceAll("\u001b\\[(\\d+)m", "")).length
+  def removeFormatting(string: String) = string.replaceAll("\u001b\\[(\\d+)m", "")
 
   def ansiColours = List(RED, BLUE, WHITE, BLACK, GREEN, YELLOW, MAGENTA, CYAN, RED_B, BLUE_B, WHITE_B, BLACK_B, GREEN_B, YELLOW_B, MAGENTA_B, CYAN_B, RESET, REVERSED, BLINK, UNDERLINED, BOLD)
 

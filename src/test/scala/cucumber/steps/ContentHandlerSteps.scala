@@ -4,15 +4,15 @@ import java.io.PrintWriter
 
 import com.gray.note.Config
 import com.gray.note.content_things.ContentTag
-import com.gray.note.handling.ContentHandler
+import com.gray.note.handling.SearchEngine
 
 class ContentHandlerSteps extends BaseSteps {
 
-  var contentHandler: Option[ContentHandler] = None
+  var searchEngine: Option[SearchEngine] = None
   var searchResult: Option[List[ContentTag]] = None
 
   Before { f =>
-    contentHandler = None
+    searchEngine = None
     searchResult = None
   }
 
@@ -23,7 +23,7 @@ class ContentHandlerSteps extends BaseSteps {
   }
 
   Given("""^a content handler is initialised with a resourceIO pointing to that list$""") { () =>
-    contentHandler = Some(ContentHandler(Config.testDirectories))
+    searchEngine = Some(SearchEngine(Config.testDirectories))
   }
 
   Given("""^a resource exists specifying a directory list of notes1$""") { () =>
@@ -33,11 +33,11 @@ class ContentHandlerSteps extends BaseSteps {
   }
 
   When("""^the content handler is called to get all content$""") { () =>
-    searchResult = Some(contentHandler.get.getAllContentTags)
+    searchResult = Some(searchEngine.get.getAllContentTags)
   }
 
   When("""^we search for a tag matching the search string "([^"]*)"$""") { (arg0: String) =>
-    searchResult = Some(contentHandler.get.getContentWithQuery(arg0))
+    searchResult = Some(searchEngine.get.getContentWithQuery(arg0))
   }
 
   Then("""^all the content in those directories is loaded$""") { () =>

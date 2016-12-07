@@ -2,7 +2,8 @@ package com.gray.note.content_things
 
 import java.io.File
 
-import com.gray.parse.{MdlParser, ParseConstants, ParseResult, Parser}
+import com.gray.parse._
+import com.gray.parse.mdlparse.MdlIterator
 
 
 /**
@@ -14,19 +15,19 @@ import com.gray.parse.{MdlParser, ParseConstants, ParseResult, Parser}
   * </dl>
   */
 trait ContentLoader extends ParseConstants {
-  private[content_things] def parser(string: String): Parser
+  private[content_things] def parser(string: String): ParseIterator
 
-  def getContent(string: String): List[Content] = {
-    parser(string).parseForResults map {
-      case result@ParseResult(string, _, CONTENT_TAG, _) =>
-        val tag = new ContentTag(result)
-        val tagContents = getContent(string)
+  def getContent(string: String, path: String = ""): List[Content] = {
+    parser(string).iterate map {
+      case result@ParseResult(string, _, CONTENT_TAG, _,_) =>
+        val tag = new ContentTag(result, path)
+        val tagContents = getContent(string, path)
         tag.setContents(tagContents)
         tag.getContents.foreach(t => t.setParent(Some(tag)))
         tag
-      case result@ParseResult(_, _, CONTENT_ALIAS, _) =>
+      case result@ParseResult(_, _, CONTENT_ALIAS, _, _) =>
         new ContentTagAlias(result)
-      case result@ParseResult(str, _, CONTENT_STRING, _) =>
+      case result@ParseResult(str, _, CONTENT_STRING, _, _) =>
         new ContentString(str)
     }
   }
@@ -34,7 +35,7 @@ trait ContentLoader extends ParseConstants {
   def getContentFromFile(path: String) = {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
     val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
-    val content = getContent(string)
+    val content = getContent(string, path)
     for {
       content0 <- content
       content1 <- content0.getAllDescendantContent
@@ -54,7 +55,7 @@ trait ContentLoader extends ParseConstants {
         val filename = filePath.stripSuffix(extn).split("/").last
         val labels = Some(filename.split(";").map(_.trim).toList)
         val result = ParseResult(string, labels, CONTENT_TAG, "")
-        val tag = new ContentTag(result)
+        val tag = new ContentTag(result, filePath)
         tag.setContents(list)
         List(tag)
       case None => list
@@ -86,5 +87,5 @@ trait ContentLoader extends ParseConstants {
 }
 
 object MdlLoader extends ContentLoader {
-  override private[content_things] def parser(string: String): Parser = MdlParser(string)
+  override private[content_things] def parser(string: String): ParseIterator = MdlIterator(string)
 }

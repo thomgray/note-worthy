@@ -18,8 +18,8 @@ class MdFormatterSpec extends FlatSpec with MustMatchers with MdCharacterConstan
         |   •  There
         |   •  You""".stripMargin
 
-    val actual = formatter.renderList(list, 100)
-    actual mustBe expected
+    val actual = formatter.removeFormatting(formatter.renderList(list, 100))
+    actual must equal(expected)
   }
 
   it should "print nested properly" in {
@@ -34,9 +34,9 @@ class MdFormatterSpec extends FlatSpec with MustMatchers with MdCharacterConstan
 
     val expected = """   •  Hello
                      |         ◦  There
-                     |               ⁃  You""".stripMargin.replace("*", "")
+                     |               ⁃  You""".stripMargin
 
-    val actual = formatter.renderList(list, 100)
+    val actual = formatter.removeFormatting(formatter.renderList(list, 100))
     actual mustBe expected
   }
 

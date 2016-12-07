@@ -6,11 +6,17 @@ import scala.collection.mutable
 
 object SearchHistorian {
 
-  val searchResultBuffer = new mutable.MutableList[ContentTag]
+  private val searchResultBuffer = new mutable.ListBuffer[Option[ContentTag]]
 
   def popSearchResult(tag: ContentTag) = {
-    searchResultBuffer.+=:(tag)
+    searchResultBuffer.+=:(Some(tag))
+    if (searchResultBuffer.length > 10) searchResultBuffer-= searchResultBuffer.last
   }
 
-  def currentTag = if (searchResultBuffer.isDefinedAt(0)) Some(searchResultBuffer(0)) else None
+  def setCurrentTagToNone() = {
+    searchResultBuffer.+=:(None)
+    if (searchResultBuffer.length > 10) searchResultBuffer-= searchResultBuffer.last
+  }
+
+  def currentTag = if (searchResultBuffer.isDefinedAt(0)) searchResultBuffer(0) else None
 }

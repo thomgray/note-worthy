@@ -11,7 +11,7 @@ object Build extends SbtBuild {
   val ScalaVersion = "2.11.8"
   val ScalatraVersion = "2.4.1"
 
-  val JettyPort = sys.props.get("jetty.port") map (_.toInt) getOrElse 8080
+//  val JettyPort = sys.props.get("jetty.port") map (_.toInt) getOrElse 8080
 
   val dependencies = Seq(
     "org.scalatest" %% "scalatest" % "3.0.0" % "test",
@@ -34,7 +34,8 @@ object Build extends SbtBuild {
           CucumberPlugin.cucumberFeaturesLocation := "cucumber",
           CucumberPlugin.cucumberJsonReport := true,
           CucumberPlugin.cucumberStepsBasePackage := "cucumber.steps",
-          unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "test/fixtures")
+          unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "test/resources"),
+          unmanagedResourceDirectories in Compile <+= baseDirectory(_ / "test/resources/*")
         ) ++
         Seq(scalacOptions ++= Seq("-feature", "-target:jvm-1.7", "-language:postfixOps")) ++
         Seq(
@@ -44,7 +45,7 @@ object Build extends SbtBuild {
           scalaVersion := ScalaVersion,
           resolvers += Classpaths.typesafeReleases,
           jarName in assembly := s"$Name.jar",
-          mainClass in assembly := Some("Main"),
+          mainClass in assembly := Some("com.gray.note.Main"),
           mergeStrategy in assembly := {
             case PathList("mime.types") => MergeStrategy.first
             case x =>

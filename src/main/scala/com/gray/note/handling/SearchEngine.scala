@@ -3,7 +3,7 @@ package com.gray.note.handling
 import com.gray.note.content_things.{ContentLoader, ContentTag, MdlLoader}
 import com.gray.util.ResourceIO
 
-trait ContentHandler {
+trait SearchEngine {
   private[handling] val contentLoader: ContentLoader
   private[handling] val resourceIO: ResourceIO
 
@@ -12,7 +12,14 @@ trait ContentHandler {
     baseContent <- contentLoader.getContentFromDirectory(dir)
     if baseContent.isInstanceOf[ContentTag]
     tag <- baseContent.asInstanceOf[ContentTag].getAllNestedTags
+    _ = if (tag.filePath == "") println(s"Tag without a file Path: ${tag.getTitleString}")
   } yield tag
+
+  def getBaseTags = for {
+    dir <- resourceIO.getDirectories
+    baseContent <- contentLoader.getContentFromDirectory(dir)
+    if baseContent.isInstanceOf[ContentTag]
+  } yield baseContent.asInstanceOf[ContentTag]
 
   def getContentWithQuery(searchString: String, fromTag: Option[ContentTag] = None) = {
     fromTag match {
@@ -56,8 +63,8 @@ trait ContentHandler {
 
 }
 
-object ContentHandler{
-  def apply(resourcePath: String): ContentHandler = new ContentHandler{
+object SearchEngine{
+  def apply(resourcePath: String): SearchEngine = new SearchEngine{
     override private[handling] val contentLoader: ContentLoader = MdlLoader
     override private[handling] val resourceIO: ResourceIO = new ResourceIO(resourcePath)
   }

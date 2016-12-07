@@ -1,15 +1,32 @@
 package com.gray.parse
 
-protected[gray] abstract class ParseIterator extends ParseConstants {
+abstract class ParseIterator(linesOffset: Int = 0) extends ParseConstants {
+
+  lazy val lineOffset = linesOffset
 
   def nextThing: Option[ParseResult]
+
+  def iterate: List[ParseResult] = {
+    var list = List.empty[ParseResult]
+    while (nextThing match {
+      case Some(res) =>
+        list = list :+ res
+        true
+      case None => false
+    }){}
+    list
+  }
 
 }
 
 case class ParseResult( string: String,
                         labels: Option[List[String]],
                         description: String,
-                        options: String )
+                        options: String,
+                        location: Location = Location(0,0)
+                      )
+
+case class Location(lineStart: Int, lineEnd: Int, columnStart: Int = 0, columnEnd: Int = 0)
 
 
 trait ParseConstants {

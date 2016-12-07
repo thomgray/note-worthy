@@ -23,7 +23,7 @@ trait CodeColouring extends AnsiColor {
 
   def getRangesForRegexes(string: String, regex: Regex*) = regex.flatMap(_.findAllMatchIn(string).map(m => Ranj(m.start, m.end))).toList
 
-  private def segmentScala(str: AttributedString) = {
+  protected [formatting] def segmentScala(str: AttributedString) = {
     str.segment(commentRegex).flatMap { s =>
       if (!s.string.matches(commentRegex.toString())) {
         s.segment(tripleQuoteRegex).flatMap { ss =>
@@ -35,7 +35,7 @@ trait CodeColouring extends AnsiColor {
     }
   }
 
-  private def segment(str: AttributedString, regexes: Regex *): List[AttributedString] = {
+  private [formatting] def segment(str: AttributedString, regexes: Regex *): List[AttributedString] = {
     if (regexes.isEmpty) List(str)
     else str.segment(regexes.head) flatMap { s =>
       if (regexes.length>1 && !matches(s.string, regexes.head)) {
@@ -57,7 +57,7 @@ trait CodeColouring extends AnsiColor {
           _str = _str.addAttributeForRegex("\\\\(u[0-9a-f]{4}|.)".r, Seq(RED))
         }
         if (_str.string.startsWith("s")){
-          _str = _str.addAttributeForRegexGroups("(?<!\\$)(\\$)(?!\\$)(\\w+)".r, Map(1 -> Seq(WHITE), 2 -> Seq(MAGENTA)))
+          _str = _str.addAttributeForRegexGroups("(?<!\\$)(\\$)(\\w+|\\{.*?\\})".r, Map(1 -> Seq(MAGENTA), 2 -> Seq(WHITE)))
           _str = _str.addAttributeForRegex("\\$\\$".r, Seq(RED))
         }
       }else{
@@ -74,11 +74,8 @@ trait CodeColouring extends AnsiColor {
   }
 
   /// general
-  private val tripleQuoteRegex = "s?\"{3,}.*?\"{3,}".r
+  private val tripleQuoteRegex = "s?\"{3,}(.|\\n)*?\"{3,}".r
   private val scalaSingleQuoteRegex = "s?\".*?((?<!\\\\)\")".r
-  private val scalaQuote = "s?\"{3,}(.|\\n)*?\"{3,}|s?\".*?((?<!\\\\)\")".r
-
-  private val singleQuoteRegex = "\".*?((?<!\\\\)\")".r
 
   private val commentRegex = """(\/{2,}.*(\n|$)|\/\*(.|\n)*?\*\/)""".r
 
@@ -105,7 +102,6 @@ trait CodeColouring extends AnsiColor {
 
   //scala
   private val protectedWordsScala = "def|val|var|this|if|else|case|for|yield|while|do|match|try|throw|catch|return|class|trait|object|public|private|protected|abstract|implicit|import|package|extends|with"
-  private val operationWordsScala = "\\+|-|->|=>|<-|&&|\\|\\|"
   private val scalaBasicTypes = "String|Boolean|Int|Double|Float|List|Array|Map|Seq"
   private val scalaFunctionRegex = "\\b(def +)(\\w+)\\b".r
 

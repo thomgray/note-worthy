@@ -1,14 +1,18 @@
 package com.gray.note.content_things
 
 import com.gray.markdown.MdParagraph
-import com.gray.parse.ParseResult
+import com.gray.parse.{Location, ParseResult}
 import com.gray.util.Formatting
 
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 
-class ContentTag(result: ParseResult) extends ContentTagLikeThing(result) with Formatting {
+class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeThing(result) with Formatting {
 
   private var _contents: List[Content] = List.empty
+
+  val location = result.location
+  override val filePath = path
+
 
   private[content_things] def setContents(contents: List[Content]) = _contents = contents
 

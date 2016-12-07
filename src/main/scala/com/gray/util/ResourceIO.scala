@@ -5,7 +5,8 @@ import java.io.{FileNotFoundException, PrintWriter}
 trait IO {
   val directoriesFile: String
 
-  def getDirectories = io.Source.fromFile(directoriesFile).mkString.split("\n").toList
+  def getDirectories = scala.io.Source.fromInputStream(getClass.getResourceAsStream(directoriesFile)).mkString.split("\n").toList
+
 
   def addDirectory(dir: String) = {
     var dirs = getDirectories
