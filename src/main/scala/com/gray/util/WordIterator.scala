@@ -12,7 +12,10 @@ class WordIterator(string: String) {
 
   def hasNext = i < words.length
 
-  def iterate(f: (String) => Unit ) =  while (hasNext) f(words(i))
+  def iterate(f: (String) => Unit ) =  while (hasNext) {
+    f(words(i))
+    i += 1
+  }
 
   def toList = words
 }
