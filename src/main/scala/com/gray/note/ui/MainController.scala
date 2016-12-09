@@ -11,10 +11,9 @@ import scala.collection.mutable
 object MainController extends ArgKeys {
   val terminal = Terminal
   val historian = SearchHistorian
-  val commands = mutable.Map[String, String]()
 
   val resultHandler = ResultHandler
-  val searchEngine = SearchEngine(Config.liveDirectories)
+  val searchEngine = SearchEngine(Config.liveRootDirectory)
 
   implicit val renderer = new ContentRenderer() {}
 
@@ -22,67 +21,62 @@ object MainController extends ArgKeys {
     Terminal.special
   }
 
-  def mainLoop = {
+  def mainLoop {
     var continue = true
     while (continue) {
       terminal.readLine.trim match {
-        case str if str == "++" && historian.currentTag.isDefined => resultHandler.openTagInAtom(historian.currentTag.get)
-        case str if str.trim.startsWith(resetCurrentTagCommand) =>
-          historian.setCurrentTagToNone()
-          val searchString = str.trim.stripPrefix(resetCurrentTagCommand).trim
-          searchString match {
-            case "" => terminal.clear
-            case _ => regularSearch(searchString)
-          }
-        case str if str.matches("^:.*") => specialCommand
-        case str if str.startsWith(Config.urlOpenCommand) && historian.currentTag.isDefined =>
-          resultHandler.openURL(str.stripPrefix(urlOpenCommand).trim)
         case "exit" | "quit" => continue = false; terminal.restore
-        case ".." if historian.currentTag.isDefined && historian.currentTag.get.parentTag.isDefined =>
-          val newTag = historian.currentTag.get.parentTag.get
-          printTag(newTag)
-        case "." if historian.currentTag.isDefined =>
-          val query = historian.currentTag.get.getQueryString
-          regularSearch(query)
-        case line if "^\\s*$".r.findFirstIn(line).isDefined =>
-        case other => regularSearch(other)
+        case str if str.startsWith(urlOpenCommand) => handleOpen(str.substring(1).trim)
+        case str if str.startsWith(resetCurrentTagCommand) => handleReset(str.substring(1).trim)
+        case str if str.startsWith(".") => handleDotCommand(str)
+        case str if str.startsWith(":") => handleMeta(str.substring(1).trim)
+        case "" =>
+        case str => handleQuery(str)
       }
     }
   }
 
-  def mainLoop2 = {
-    var continue = true
-    while (continue) {
-      val rawLine = terminal.readLine
-      val (query, args) = handleArgs(rawLine)
+  def handleOpen(string: String) = string match {
+    case str if str == "+" && historian.currentTag.isDefined =>
+      resultHandler.openTagInAtom(historian.currentTag.get)
+    case str if historian.currentTag.isDefined =>
+      resultHandler.openURL(str)
+    case _ =>
+  }
 
-      continue = args.contains(EXIT_KEY)
-      if (continue) doArgs(query, args)
+  def handleMeta(string: String) = string match {
+    case "l" | "list" =>
+      searchEngine.io.getDirectories.foreach(println)
+    case str if str.startsWith("+") =>
+      val newFile = str.stripPrefix("+").trim
+      searchEngine.io.addDirectory(newFile)
+    case str if str.startsWith("-") =>
+      val remove = str.stripPrefix("-").trim
+      searchEngine.io.removeDirectory(remove)
+    case _ =>
+  }
+
+  def handleQuery(string: String) = regularSearch(string)
+
+  def handleReset(string: String) = {
+    historian.setCurrentTagToNone()
+    string match {
+      case "" => terminal.clear
+      case _ => regularSearch(string)
     }
   }
 
-  def handleArgs(string: String) = {
-    var args = Map[String,Seq[String]]()
-    var leftover = List.empty[String]
-
-    WordIterator(string).iterate{ word =>
-      if (word.startsWith("-")) {
-        word match {
-          case "-h" | "--help" => args = args + (HELP_KEY -> Seq.empty)
-          case "-q" | "--quit" | "-e" | "--exit" => args = args + (EXIT_KEY -> Seq.empty)
-          case _ =>
-        }
-      }else{
-        leftover = leftover :+ word
-      }
-    }
-    (leftover.mkString(" "), args)
+  def handleDotCommand(string: String) = string match {
+    case ".." if historian.currentTag.isDefined && historian.currentTag.get.parentTag.isDefined =>
+      val parQuery = historian.currentTag.get.parentTag.get.getQueryString
+      regularSearch(parQuery)
+      handleQuery(parQuery)
+    case "." if historian.currentTag.isDefined =>
+      val query = historian.currentTag.get.getQueryString
+      handleQuery(query)
+    case _ =>
   }
 
-  def doArgs(query: String, map: Map[String, Seq[String]]) = {
-
-
-  }
 
   def regularSearch(string: String) = {
     getMergedResult(string) match {
@@ -101,7 +95,6 @@ object MainController extends ArgKeys {
         case _ => searchEngine.getContentWithQuery(string)
       }
     case None => searchEngine.getContentWithQuery(string)
-
   }
 
   def getMergedResult(string: String) = getResults(string) match {
@@ -129,9 +122,6 @@ object MainController extends ArgKeys {
     println(renderer.renderTag(tag, terminal.width))
     println()
   }
-
-
-
 
 }
 

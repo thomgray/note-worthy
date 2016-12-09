@@ -17,17 +17,17 @@ class ContentHandlerSteps extends BaseSteps {
   }
 
   Given("""^a resource exists specifying a directory list of foo notes$""") { () =>
-    val writer = new PrintWriter(Config.testDirectories)
+    val writer = new PrintWriter(Config.testRootDirectory)
     writer.write("/Users/grayt13/Projects/note-worthy/src/test/resources/fixtures/mdl_stub_directories/foo_notes/")
     writer.close
   }
 
   Given("""^a content handler is initialised with a resourceIO pointing to that list$""") { () =>
-    searchEngine = Some(SearchEngine(Config.testDirectories))
+    searchEngine = Some(SearchEngine(Config.testRootDirectory))
   }
 
   Given("""^a resource exists specifying a directory list of notes1$""") { () =>
-    val writer = new PrintWriter(Config.testDirectories)
+    val writer = new PrintWriter(Config.testRootDirectory)
     writer.write("/Users/grayt13/Projects/note-worthy/src/test/resources/fixtures/mdl_stub_directories/test_notes1/")
     writer.close
   }

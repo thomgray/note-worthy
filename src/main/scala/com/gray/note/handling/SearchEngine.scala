@@ -61,6 +61,8 @@ trait SearchEngine {
 
   def mergeResults(list: List[ContentTag]) = contentLoader.mergeContentTags(list)
 
+  def io = resourceIO
+
 }
 
 object SearchEngine{

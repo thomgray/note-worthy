@@ -1,11 +1,16 @@
 package com.gray.util
 
-import java.io.{FileNotFoundException, PrintWriter}
+import java.io.{File, FileNotFoundException, PrintWriter}
 
 trait IO {
-  val directoriesFile: String
+  val noteWorthyRootDirectory: String
 
-  def getDirectories = scala.io.Source.fromInputStream(getClass.getResourceAsStream(directoriesFile)).mkString.split("\n").toList
+  lazy val directoriesListFilePath = noteWorthyRootDirectory +
+      (if (noteWorthyRootDirectory.endsWith("/")) "" else "/") +
+      "directories.txt"
+
+
+  def getDirectories = scala.io.Source.fromFile(directoriesListFilePath).mkString.split("\n").toList
 
 
   def addDirectory(dir: String) = {
@@ -30,7 +35,7 @@ trait IO {
   private def saveDirectories(dirs: List[String]) = {
     val dirsString = dirs.mkString("\n")
     try {
-      val writer = new PrintWriter(directoriesFile)
+      val writer = new PrintWriter(new File(directoriesListFilePath))
       writer.write(dirsString)
       writer.close()
     } catch {
@@ -40,5 +45,10 @@ trait IO {
 }
 
 class ResourceIO(directoriesListPath: String) extends IO {
-  override val directoriesFile: String = directoriesListPath
+  override val noteWorthyRootDirectory: String = directoriesListPath
+
+  new File(noteWorthyRootDirectory).exists() match {
+    case true => println("the root file exists!")
+    case false => println(s"no root file apparently: $noteWorthyRootDirectory")
+  }
 }

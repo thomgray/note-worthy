@@ -6,8 +6,8 @@ object Config {
   var environment = LIVE
 
 
-  val liveDirectories = "/directories.txt"
-  val testDirectories = "/test-directories.txt"
+  val liveRootDirectory = "/Users/grayt13/.note-worthy"
+  val testRootDirectory = "/Users/grayt13/Projects/note-worthy/src/test/resources/fixtures/testRootDirectory"
 
   val tabEscapeString = ">>"
   val standardTab = "    "
