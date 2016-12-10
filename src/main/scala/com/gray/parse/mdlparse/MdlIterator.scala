@@ -15,15 +15,15 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
   override def nextThing: Option[ParseResult] = {
     getRangeOfNextBlock(marker) match {
       case range@Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start) =>
-        val array = lines.slice(marker, start) //getLinesInRange(marker, start)
+        val array = lines.slice(marker, start)
         marker = start
         Some(handleStringLine(array, range.get))
       case range@Some(Ranj(start, end)) =>
-        val array = lines.slice(start, end)// getLinesInRange(start, end)
+        val array = lines.slice(start, end)
         marker = end
         Some(handleTagLines(array, range.get))
       case None if marker < end && !linesAreBlank(marker, end) =>
-        val array = lines.slice(marker, lines.length)// getLinesInRange(marker, lines.length)
+        val array = lines.slice(marker, lines.length)
         marker = end
         Some(handleStringLine(array, Ranj(marker, lines.length)))
       case _ => None
@@ -66,6 +66,7 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
 
     ParseResult(string1, None, CONTENT_STRING, "", location)
   }
+
 
   def getRangeOfNextBlock(from: Int): Option[Ranj] = {
     getLineNumberOfNextOpenLine(from) match {

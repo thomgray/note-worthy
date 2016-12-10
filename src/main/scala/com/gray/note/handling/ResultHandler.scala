@@ -23,7 +23,7 @@ trait ResultHandler {
     case string: ContentString => getMdContentsFromContentString(string)
   }
 
-  private def getMdContentsFromContentString(string: ContentString) = {
+  private def getMdContentsFromContentString(string: ContentString): List[MdParagraph] = {
     string.format match {
       case "txt" => List(MdPlainString(string.getString))
       case "md" => MdParser.parse(string.getString)
@@ -62,6 +62,26 @@ trait ResultHandler {
     val location = s"${tag.location.lineStart+1}:${tag.location.columnStart+1}"
     println(s"Opening ${tag.filePath}:$location")
     s"atom ${tag.filePath}:$location".!
+  }
+
+  def getNextSiblingTag(contentTag: ContentTag) = contentTag.parentTag match {
+    case Some(parent) =>
+      val visibleChildren = parent.getTagContents.filter(_.isContentVisible)
+      visibleChildren.indexOf(contentTag) match {
+        case i if i >= 0 && i < visibleChildren.length-1 => Some(visibleChildren(i+1))
+        case _ => None
+      }
+    case _ => None
+  }
+
+  def getPreviousSiblingTag(contentTag: ContentTag) = contentTag.parentTag match {
+    case Some(parent) =>
+      val visibleChildren = parent.getTagContents.filter(_.isContentVisible)
+      visibleChildren.indexOf(contentTag) match {
+        case i if i > 0  => Some(visibleChildren(i-1))
+        case _ => None
+      }
+    case _ => None
   }
 
 

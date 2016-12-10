@@ -5,6 +5,7 @@ import com.gray.note.Config._
 import com.gray.note.content_things.{ContentRenderer, ContentTag}
 import com.gray.note.handling.{ResultHandler, SearchEngine}
 import com.gray.util.WordIterator
+import com.gray.note.ui.SearchHistorian.currentTag
 
 import scala.collection.mutable
 
@@ -21,6 +22,18 @@ object MainController extends ArgKeys {
     Terminal.special
   }
 
+  def handleNextSibling(query: String) = resultHandler.getNextSiblingTag(currentTag.get) match {
+    case Some(nextSibling) =>
+      regularSearch(nextSibling.getQueryString)
+    case _ =>
+  }
+  
+  def handlePreviousSibling(query: String) = resultHandler.getPreviousSiblingTag(currentTag.get) match {
+    case Some(prevSibling) =>
+      regularSearch(prevSibling.getQueryString)
+    case _ =>
+  }
+
   def mainLoop {
     var continue = true
     while (continue) {
@@ -30,6 +43,8 @@ object MainController extends ArgKeys {
         case str if str.startsWith(resetCurrentTagCommand) => handleReset(str.substring(1).trim)
         case str if str.startsWith(".") => handleDotCommand(str)
         case str if str.startsWith(":") => handleMeta(str.substring(1).trim)
+        case str if str.startsWith(">>") && currentTag.isDefined => handleNextSibling(str.stripPrefix(">>").trim)
+        case str if str.startsWith("<<") && currentTag.isDefined => handlePreviousSibling(str.stripPrefix("<<").trim)
         case "" =>
         case str => handleQuery(str)
       }
@@ -37,9 +52,9 @@ object MainController extends ArgKeys {
   }
 
   def handleOpen(string: String) = string match {
-    case str if str == "+" && historian.currentTag.isDefined =>
-      resultHandler.openTagInAtom(historian.currentTag.get)
-    case str if historian.currentTag.isDefined =>
+    case str if str == "+" && currentTag.isDefined =>
+      resultHandler.openTagInAtom(currentTag.get)
+    case str if currentTag.isDefined =>
       resultHandler.openURL(str)
     case _ =>
   }
@@ -67,12 +82,12 @@ object MainController extends ArgKeys {
   }
 
   def handleDotCommand(string: String) = string match {
-    case ".." if historian.currentTag.isDefined && historian.currentTag.get.parentTag.isDefined =>
-      val parQuery = historian.currentTag.get.parentTag.get.getQueryString
+    case ".." if currentTag.isDefined && currentTag.get.parentTag.isDefined =>
+      val parQuery = currentTag.get.parentTag.get.getQueryString
       regularSearch(parQuery)
       handleQuery(parQuery)
-    case "." if historian.currentTag.isDefined =>
-      val query = historian.currentTag.get.getQueryString
+    case "." if currentTag.isDefined =>
+      val query = currentTag.get.getQueryString
       handleQuery(query)
     case _ =>
   }
@@ -87,7 +102,7 @@ object MainController extends ArgKeys {
     }
   }
 
-  def getResults(string: String) = historian.currentTag match {
+  def getResults(string: String) = currentTag match {
     case Some(tag) =>
       val newQuery = tag.getQueryString + string
       searchEngine.getContentWithQuery(newQuery, Some(tag)) match {
@@ -103,7 +118,7 @@ object MainController extends ArgKeys {
   }
 
 
-  def getAutocompletionOptions(string: String): List[String] = historian.currentTag match {
+  def getAutocompletionOptions(string: String): List[String] = currentTag match {
     case Some(tag) => for {
       contentTag <- tag.getTagContents
       label = contentTag.getTitleString

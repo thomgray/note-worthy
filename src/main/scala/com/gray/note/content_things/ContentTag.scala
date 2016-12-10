@@ -25,9 +25,9 @@ class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeT
 
   def getContents = _contents
 
-  def getMdParagrahs: List[MdParagraph] = getContents.flatMap {
+  def getMdParagraphs: List[MdParagraph] = getContents.flatMap {
     case string: ContentString => string.paragraphs().getOrElse(List.empty)
-    case tag: ContentTag => tag.getMdParagrahs
+    case tag: ContentTag => tag.getMdParagraphs
   }
 
   override def isParaphrase: Boolean = false
@@ -35,6 +35,11 @@ class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeT
   override def getAllDescendantContent: List[Content] = _contents.flatMap(_.getAllDescendantContent).::(this)
 
   def getAllNestedTags: List[ContentTag] = this +: getTagContents.flatMap(_.getAllNestedTags)
+
+  def getLinearHierarchy: List[ContentTag] = parentTag match {
+    case None => List(this)
+    case Some(parent) => parent.getLinearHierarchy :+ this
+  }
 
   override def getString: String = {
     val includedContent = _contents.filter {
