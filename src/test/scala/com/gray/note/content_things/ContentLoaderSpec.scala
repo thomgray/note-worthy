@@ -43,4 +43,21 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     contents(2) mustBe a [ContentString]
   }
 
+  it should "recurse the offset for nested tags" in {
+    val str =
+      """[[[tag
+        |content
+        |[[[innertag
+        |inner content
+        |]]]
+        |]]]""".stripMargin
+    val result = mdlLoader.getContent(str, "", 0)
+    val outer = result.head.asInstanceOf[ContentTag]
+    val inner = outer.getTagContents.head
+
+    outer.location.lineStart mustBe 0
+    inner.location.lineStart mustBe 2
+
+  }
+
 }

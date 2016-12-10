@@ -4,6 +4,7 @@ import java.io.File
 
 import com.gray.parse._
 import com.gray.parse.mdlparse.MdlIterator
+import com.sun.scenario.effect.Offset
 
 
 /**
@@ -15,13 +16,13 @@ import com.gray.parse.mdlparse.MdlIterator
   * </dl>
   */
 trait ContentLoader extends ParseConstants {
-  private[content_things] def parser(string: String): ParseIterator
+  private[content_things] def parser(string: String, offset: Int = 0): ParseIterator
 
-  def getContent(string: String, path: String = ""): List[Content] = {
-    parser(string).iterate map {
+  def getContent(string: String, path: String = "", offset: Int = 0): List[Content] = {
+    parser(string, offset).iterate map {
       case result@ParseResult(string, _, CONTENT_TAG, _,_) =>
         val tag = new ContentTag(result, path)
-        val tagContents = getContent(string, path)
+        val tagContents = getContent(string, path, offset + result.location.lineStart+1)
         tag.setContents(tagContents)
         tag.getContents.foreach(t => t.setParent(Some(tag)))
         tag
@@ -87,5 +88,5 @@ trait ContentLoader extends ParseConstants {
 }
 
 object MdlLoader extends ContentLoader {
-  override private[content_things] def parser(string: String): ParseIterator = MdlIterator(string)
+  override private[content_things] def parser(string: String, offset: Int): ParseIterator = MdlIterator(string, offset)
 }

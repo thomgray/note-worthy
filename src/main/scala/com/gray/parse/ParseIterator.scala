@@ -2,8 +2,6 @@ package com.gray.parse
 
 abstract class ParseIterator(linesOffset: Int = 0) extends ParseConstants {
 
-  lazy val lineOffset = linesOffset
-
   def nextThing: Option[ParseResult]
 
   def iterate: List[ParseResult] = {

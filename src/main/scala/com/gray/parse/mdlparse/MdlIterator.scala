@@ -4,6 +4,7 @@ import com.gray.parse.{Location, ParseIterator, ParseResult}
 import com.gray.util.{Formatting, Ranj}
 
 class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset) with MdlParseConstants with Formatting {
+
   val lines = trimEmptyLines(string).split("(\\n|\\r)")
 
   def end = lines.length
@@ -51,7 +52,7 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     val colStart = "\\[{3,}".r.findFirstMatchIn(lines.head).get.end
     val colEnd = "\\]{3,}".r.findFirstMatchIn(lines.last).get.start
 
-    val location = Location(ranj.start, ranj.end, colStart, colEnd)
+    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
 
     ParseResult(string, Some(labels), CONTENT_TAG, argString, location)
   }
@@ -60,11 +61,15 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     val string1 = trimEmptyLines(lines.mkString("\n"))
     val sensibleLines = string1.split("\n")
 
-    val colStart = "\\S".r.findFirstMatchIn(sensibleLines.head).get.end
-    val colEnd = "\\S*$".r.findFirstMatchIn(sensibleLines.last).get.start
-    val location = Location(ranj.start + lineOffset, ranj.end + lineOffset, colStart, colEnd)
+    val colStart = "\\S".r.findFirstMatchIn(sensibleLines.head).get.end + 1
+    val colEnd = "\\S*$".r.findFirstMatchIn(sensibleLines.last).get.start + 1
+    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
 
     ParseResult(string1, None, CONTENT_STRING, "", location)
+  }
+  
+  private def handleLink(line: String, ranj: Ranj) = {
+    
   }
 
 
