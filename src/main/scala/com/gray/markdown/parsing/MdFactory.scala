@@ -100,6 +100,11 @@ class DefaultMdFactory extends MdFactory {
       italicString = italicString.substring(1, italicString.length - 1)
       UNDERLINED + italicString + RESET
     })
+    result = inlineCodeRegex.replaceAllIn(result, {m =>
+      var codeString = m.matched
+      codeString = codeString.substring(1, codeString.length-1)
+      BLACK_B + WHITE + BOLD + codeString + RESET
+    })
     result = """\\(_|\*|\\|\{|\}|\[|\]|\`|\.|\!|\#|\+|\-|\!)""".r.replaceAllIn(result, _.matched)
     result
   }

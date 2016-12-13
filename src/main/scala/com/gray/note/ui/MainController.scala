@@ -117,7 +117,6 @@ object MainController extends ArgKeys {
     case _ => None
   }
 
-
   def getAutocompletionOptions(string: String): List[String] = currentTag match {
     case Some(tag) => for {
       contentTag <- tag.getTagContents
@@ -125,7 +124,6 @@ object MainController extends ArgKeys {
       if label.startsWith(string)
     } yield label
     case _ => List.empty[String]
-
   }
 
   def printTag(tag: ContentTag, popResult: Boolean = true) = {

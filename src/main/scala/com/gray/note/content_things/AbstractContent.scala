@@ -14,9 +14,6 @@ abstract class Content extends AnsiColor with ParseConstants{
 
   def getString: String
 
-//  def getFormattedString(width: Int)(implicit renderer: ContentRenderer): String = renderer.renderContent(this, width)
-//  def getFormattedString(implicit renderer: ContentRenderer): String = getFormattedString(0)(renderer)
-
   override def toString: String = getString
 
   val filePath: String

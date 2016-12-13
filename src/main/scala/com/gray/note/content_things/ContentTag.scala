@@ -13,6 +13,11 @@ class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeT
   val location = result.location
   override val filePath = path
 
+  private var _linkName: Option[String] = None
+  def setLinkName(string: String) = _linkName = Some(string)
+  def linkName = _linkName
+  def isLinked = _linkName.isDefined
+
 
   private[content_things] def setContents(contents: List[Content]) = _contents = contents
 
@@ -32,9 +37,9 @@ class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeT
 
   override def isParaphrase: Boolean = false
 
-  override def getAllDescendantContent: List[Content] = _contents.flatMap(_.getAllDescendantContent).::(this)
+  override def getAllDescendantContent: List[Content] = this :: _contents.flatMap(_.getAllDescendantContent)
 
-  def getAllNestedTags: List[ContentTag] = this +: getTagContents.flatMap(_.getAllNestedTags)
+  def getAllNestedTags: List[ContentTag] = this :: getTagContents.flatMap(_.getAllNestedTags)
 
   def getLinearHierarchy: List[ContentTag] = parentTag match {
     case None => List(this)

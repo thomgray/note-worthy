@@ -37,6 +37,8 @@ protected[parsing] trait MdRegexes extends Regexes{
     */
   val boldRegex = """(?:(?<!\\)\*\*(.*?)(?<!\\)\*\*)|(?:(?<!\\)__(.*?)(?<!\\)__)""".r
 
+  val inlineCodeRegex = """(?<!\\)`.+?(?<!\\)`""".r
+
 
   ///table-related regexes
   val tableHeaderRegex = """table header""".r
