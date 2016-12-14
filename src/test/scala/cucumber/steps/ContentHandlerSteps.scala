@@ -17,7 +17,7 @@ class ContentHandlerSteps extends BaseSteps {
   }
 
   Given("""^a resource exists specifying a directory list of foo notes$""") { () =>
-    val writer = new PrintWriter(Config.testRootDirectory)
+    val writer = new PrintWriter(Config.testRootDirectory+"/directories.txt")
     writer.write("/Users/grayt13/Projects/note-worthy/src/test/resources/fixtures/mdl_stub_directories/foo_notes/")
     writer.close
   }
@@ -27,7 +27,7 @@ class ContentHandlerSteps extends BaseSteps {
   }
 
   Given("""^a resource exists specifying a directory list of notes1$""") { () =>
-    val writer = new PrintWriter(Config.testRootDirectory)
+    val writer = new PrintWriter(Config.testRootDirectory+"/directories.txt")
     writer.write("/Users/grayt13/Projects/note-worthy/src/test/resources/fixtures/mdl_stub_directories/test_notes1/")
     writer.close
   }

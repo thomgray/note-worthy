@@ -1,5 +1,6 @@
 package cucumber.steps
 
+import com.gray.markdown.formatting.MdFormatter
 import com.gray.markdown.parsing.MdParser
 import com.gray.markdown.{MdLink, MdParagraph, MdString}
 import cucumber.api.PendingException
@@ -15,7 +16,7 @@ class MarkdownSteps extends BaseSteps {
 
   private def getMdLink(string: String) = string match {
     case "google" => MdLink("https://www.google.co.uk", Some("google"))
-    case "githum" => MdLink("www.github.com")
+    case "github" => MdLink("www.github.com")
     case _ => throw new PendingException()
   }
 
@@ -77,6 +78,7 @@ class MarkdownSteps extends BaseSteps {
 
   When("""^we take the links in the (\d+)(?:st|nd|rd|th) paragraph$"""){ (arg0:Int) =>
     setLinks(paragraphs(arg0-1).asInstanceOf[MdString].links.map(_._1))
+    links.foreach(println)
   }
 
   Then("""^there are (\d+) links$"""){ (arg0:Int) =>
@@ -84,7 +86,7 @@ class MarkdownSteps extends BaseSteps {
   }
 
   Then("""^the (\d+)(?:st|nd|rd|th) link is "([^"]*)"$"""){ (arg0:Int, arg1:String) =>
-    val resLink = link(arg0)
+    val resLink = link(arg0-1)
     val expected = getMdLink(arg1)
     resLink mustBe expected
   }

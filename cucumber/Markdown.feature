@@ -24,4 +24,4 @@ Feature: Parsing markdown
     And we take the links in the 1st paragraph
     Then there are 2 links
     And the 1st link is "google"
-    And the 2nd link is "www.github.com"
+    And the 2nd link is "github"
