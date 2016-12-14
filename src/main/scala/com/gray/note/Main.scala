@@ -1,15 +1,15 @@
 package com.gray.note
 
-import com.gray.note.ui.MainController
+import com.gray.note.ui.{Installer, MainController}
 
 import scala.io.AnsiColor._
 
 object Main {
-  val mainController = MainController
 
   def main(array: Array[String]): Unit = {
-//    mainController.terminal.runVi()
-    mainController.mainLoop
+    Installer.install()
+
+    MainController.mainLoop
   }
 
   def printTitile = {
