@@ -251,4 +251,19 @@ class MdParsingSpec extends FlatSpec with MustMatchers  with MockitoSugar with B
     parser.linkRefs mustBe List(MdLinkRef("www.google.com", "foo"))
   }
 
+  "checkIndentedLiteral()" should "find the range of a block o indented literals separated by lines" in {
+    val str =
+      """
+        |    This is a line
+        |
+        |    This is another""".stripMargin
+
+    val parser = testParser(str, 1)
+    when(mockFactory.makeMdIndentedLiteral(any[List[String]])) thenReturn(stubMdLiteral)
+
+    parser.checkIndentedLiteral() mustBe Some(stubMdLiteral)
+
+    verify(mockFactory, times(1)).makeMdIndentedLiteral(List("    This is a line", "", "    This is another"))
+  }
+
 }

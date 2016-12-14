@@ -68,21 +68,22 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
     case None => None
   }
 
-  def checkIndentedLiteral() = getRangeOfSolidBlock(indentedLiteralRegex) match {
-    case Some(range) =>
-      marker = range.end - 1
-      Some(makeMdIndentedLiteral(getLines(range)))
-    case None => None
-  }
+//  def checkIndentedLiteral() = getRangeOfSolidBlock(indentedLiteralRegex) match {
+//    case Some(range) =>
+//      marker = range.end - 1
+//      Some(makeMdIndentedLiteral(getLines(range)))
+//    case None => None
+//  }
 
-  def checkIndentedLiteral2() = { // needs word still apparently
+  def checkIndentedLiteral() = { // needs word still apparently
     def indexOfEndOfIndent(from: Int): Option[Int] = {
       getRangeOfSolidBlock(indentedLiteralRegex, from) match {
         case Some(ranj) =>
           getRangeOfSolidBlock(emptyLineRegex, ranj.end) match {
             case Some(emptyRanj) =>
-              indexOfEndOfIndent(ranj.end) match {
-                case Some(nextIndentEnd) => Some(nextIndentEnd)
+              indexOfEndOfIndent(emptyRanj.end) match {
+                case Some(nextIndentEnd) =>
+                  Some(nextIndentEnd)
                 case None => Some(ranj.end)
               }
             case None => Some(ranj.end)
@@ -94,7 +95,7 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
     indexOfEndOfIndent(marker) match {
       case Some(end) =>
         val range = Ranj(marker, end)
-        marker = end
+        marker = end-1
         Some(makeMdIndentedLiteral(getLines(range)))
       case None => None
     }

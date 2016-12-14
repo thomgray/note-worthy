@@ -40,7 +40,7 @@ class DefaultMdFactory extends MdFactory {
   }
 
   override def makeMdIndentedLiteral(lines: List[String]) = {
-    val string = lines.map(line => line.substring(4)).mkString("\n")
+    val string = lines.map(line => line.stripPrefix("    ")).mkString("\n")
     MdLiteral(string)
   }
 

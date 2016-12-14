@@ -80,13 +80,16 @@ protected[parsing] abstract class MdParsingRuleBase extends MdRegexes {
     * @param from  the begin of the match, 'marker' if unset
     * @return the range from the start of the match to the end of the match. If the rest of the lines buffer matches the regex, then the end will be equal to lines.length, and getLines(range) will return the lines matching the regex (provided the first line matches)
     */
-  def getRangeOfSolidBlock(regex: Regex, from: Int = marker) = regex.findFirstIn(lines(from)) match {
-    case Some(_) =>
-      lines.indexWhere(l => regex.findFirstIn(l).isEmpty, from + 1) match {
-        case -1 => Some(Ranj(from, lines.length))
-        case other => Some(Ranj(from, other))
-      }
-    case None => None
+  def getRangeOfSolidBlock(regex: Regex, from: Int = marker) = {
+    if (from < lines.length) regex.findFirstIn(lines(from)) match {
+      case Some(_) =>
+        lines.indexWhere(l => regex.findFirstIn(l).isEmpty, from + 1) match {
+          case -1 => Some(Ranj(from, lines.length))
+          case other => Some(Ranj(from, other))
+        }
+      case None => None
+    }
+    else None
   }
 
 }
