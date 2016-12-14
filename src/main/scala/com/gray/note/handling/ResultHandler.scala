@@ -8,8 +8,12 @@ import sys.process._
 trait ResultHandler {
   var currentTagURLS = List.empty[MdLink]
   var currentParagraphs = List.empty[MdParagraph]
+  var currentTag: Option[ContentTag] = None
+
+  var contentTags = List.empty[ContentTag]
 
   def apply(contentTag: ContentTag) = {
+    currentTag = Some(contentTag)
     currentParagraphs = paragraphsForTag(contentTag)
     currentTagURLS = gatherLinks(currentParagraphs)
   }
