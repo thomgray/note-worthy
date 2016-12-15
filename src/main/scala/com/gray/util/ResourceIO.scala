@@ -9,9 +9,7 @@ trait IO {
       (if (noteWorthyRootDirectory.endsWith("/")) "" else "/") +
       "directories.txt"
 
-
-  def getDirectories = scala.io.Source.fromFile(directoriesListFilePath).mkString.split("\n").toList
-
+  def getDirectories = scala.io.Source.fromFile(directoriesListFilePath).mkString.split("\n").filter(_.matches("^\\S+$")).toList
 
   def addDirectory(dir: String) = {
     var dirs = getDirectories

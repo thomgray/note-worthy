@@ -22,6 +22,10 @@ class ContentTag(result: ParseResult, path: String = "") extends ContentTagLikeT
   private[content_things] def setContents(contents: List[Content]) = _contents = contents
 
   def getTagContents = _contents.filter(t => t.isInstanceOf[ContentTag]).asInstanceOf[List[ContentTag]]
+//  def getTagContents = _contents.filter{
+//    case _ :ContentTag => true
+//    case _ => false
+// }  //TODO this might be better
 
   def get[T <: Content : ClassTag] = {
     val clazz = implicitly[ClassTag[T]].runtimeClass

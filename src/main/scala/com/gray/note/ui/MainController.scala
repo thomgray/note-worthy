@@ -16,6 +16,8 @@ object MainController extends ArgKeys {
   val resultHandler = ResultHandler
   val searchEngine = SearchEngine(Config.liveRootDirectory)
 
+  val autoCompleter = new AutoCompleter(searchEngine)
+
   implicit val renderer = new ContentRenderer() {}
 
   def specialCommand: Unit = {
@@ -135,6 +137,8 @@ object MainController extends ArgKeys {
     println(renderer.renderTag(tag, terminal.width))
     println()
   }
+
+
 
 }
 

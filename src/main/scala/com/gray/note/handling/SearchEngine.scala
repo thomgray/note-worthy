@@ -8,12 +8,12 @@ trait SearchEngine {
   private[handling] val resourceIO: ResourceIO
 
   def getAllContentTags = for {
-    dir <- resourceIO.getDirectories
-    baseContent <- contentLoader.getContentFromDirectory(dir)
-    if baseContent.isInstanceOf[ContentTag]
-    tag <- baseContent.asInstanceOf[ContentTag].getAllNestedTags
+    baseTag <- getBaseTags
+    tag <- baseTag.getAllNestedTags
     _ = if (tag.filePath == "") println(s"Tag without a file Path: ${tag.getTitleString}")
-  } yield tag
+  } yield {
+    tag
+  }
 
   def getBaseTags = for {
     dir <- resourceIO.getDirectories

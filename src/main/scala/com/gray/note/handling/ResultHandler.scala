@@ -89,6 +89,7 @@ trait ResultHandler {
   }
 
 
+
 }
 
 object ResultHandler extends ResultHandler
