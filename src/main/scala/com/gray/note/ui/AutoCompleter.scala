@@ -20,9 +20,9 @@ class AutoCompleter(searchEngine: SearchEngine) {
     reset = false
   }
 
-  def apply(tag: ContentTag) = {
+  def apply(tag: Option[ContentTag]) = {
     reset = true
-    currentTag = Some(tag)
+    currentTag = tag
   }
 
   /**
@@ -33,16 +33,19 @@ class AutoCompleter(searchEngine: SearchEngine) {
   def autoComplete(string: String) = {
     updateTagList()
 
-
     var result = List.empty[String]
 
     val possQueries = queryOptions(string)
 
     possQueries find { tuple =>
       val (query, extension) = tuple
-      val baseList = getTagsForQuery(query)
-      val baseListLabel = baseList.map(_.getTitleString)
-      baseList.filter(t => t.isContentVisible && t.getTitleString.startsWith(extension)) match {
+      val prefix = if (currentTag.isDefined) currentTag.get.getQueryString else ""
+      val queryWithCurrentTag = s"$prefix $query".replaceAll("\\s+", " ").trim
+
+      var baseList = getTagsForQuery(queryWithCurrentTag).filter(t => t.isContentVisible && t.getTitleString.startsWith(extension))
+      if (baseList.isEmpty) baseList = getTagsForQuery(query).filter(t => t.isContentVisible && t.getTitleString.startsWith(extension))
+
+      baseList match {
         case Nil => false
         case list =>
           // I know that query is a match for baseList, and that extension is a partial match for an existing child node
@@ -94,10 +97,10 @@ class AutoCompleter(searchEngine: SearchEngine) {
   }
 
   protected [ui] def getBaseQueryAndLeftover(string: String) =
-    if (string.endsWith(" ")) {
-      (string.trim, "")
-    } else if (string.matches("^\\s*$")) {
+    if (string.matches("^\\s*$")) {
       ("", "")
+    } else if (string.endsWith(" ")) {
+      (string.trim, "")
     } else {
       val lastWord = "\\w+$".r.findFirstIn(string).get
       val query = string.stripSuffix(lastWord).trim
@@ -106,10 +109,8 @@ class AutoCompleter(searchEngine: SearchEngine) {
 
 
   def getTagsForQuery(string: String) = if (string != "") {
-    searchEngine.getContentWithQuery(string) flatMap { tag =>
-      tag.getTagContents
-    }
-  } else tagList
+    searchEngine.getContentWithQuery(string) flatMap (_.getTagContents)
+  } else searchEngine.getBaseTags
 
 
 }

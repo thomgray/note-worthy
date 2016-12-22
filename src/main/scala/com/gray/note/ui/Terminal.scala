@@ -19,11 +19,11 @@ object Terminal {
 
   console.addCompleter(new Completer {
     override def complete(s: String, i: Int, list: util.List[CharSequence]): Int = {
-      val options = MainController.getAutocompletionOptions(s.trim)
+      val options = MainController.getAutocompletionOptions(s)
       if (s.trim startsWith Config.resetCurrentTagCommand){
         -1
       }else if (options.length==1) {
-        console.putString(options.head.stripPrefix(s.trim))
+        if (!s.trim.endsWith(options.head.trim)) console.putString(options.head.stripPrefix(s.trim) + " ")
         0
       }
       else if (options.length>1) {

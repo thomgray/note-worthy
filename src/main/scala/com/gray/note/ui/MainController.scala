@@ -79,6 +79,7 @@ object MainController extends ArgKeys {
     historian.setCurrentTagToNone()
     string match {
       case "" => terminal.clear
+        autoCompleter.apply(None)
       case _ => regularSearch(string)
     }
   }
@@ -99,6 +100,7 @@ object MainController extends ArgKeys {
     getMergedResult(string) match {
       case Some(result) =>
         resultHandler.apply(result)
+        autoCompleter.apply(Some(result))
         printTag(result)
       case _ =>
     }
@@ -119,13 +121,8 @@ object MainController extends ArgKeys {
     case _ => None
   }
 
-  def getAutocompletionOptions(string: String): List[String] = currentTag match {
-    case Some(tag) => for {
-      contentTag <- tag.getTagContents
-      label = contentTag.getTitleString
-      if label.startsWith(string)
-    } yield label
-    case _ => List.empty[String]
+  def getAutocompletionOptions(string: String): List[String] = {
+    autoCompleter.autoComplete(string)
   }
 
   def printTag(tag: ContentTag, popResult: Boolean = true) = {
