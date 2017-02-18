@@ -2,7 +2,7 @@ package com.gray.markdown.parsing
 
 import scala.util.matching.Regex
 
-protected[parsing] trait MdRegexes extends Regexes{
+protected[gray] trait MdRegexes extends Regexes{
 
   private val nl = "(\\n|\\r)"
   val leadingWhitespaceRegex = "^\\s*".r
@@ -52,6 +52,8 @@ protected[parsing] trait MdRegexes extends Regexes{
   //unambiguous single lines
   val headerRegex = "^ {0,3}#{1,5} +.*$".r
   val emptyLineRegex = "^\\s*$".r
+
+  val nonIndentedAnthingRegex = "^ {0,3}.*$".r
 
 
   def anyMatchingRegex(string: String, regexes: Seq[Regex]) = regexes.find(_.findFirstIn(string).isDefined)

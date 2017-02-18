@@ -14,7 +14,10 @@ abstract class ParseIterator(linesOffset: Int = 0) extends ParseConstants {
     }){}
     list
   }
+}
 
+trait ContentParser extends ParseConstants {
+  def apply(string: String, linesOffset: Int = 0): List[ParseResult]
 }
 
 case class ParseResult( string: String,

@@ -1,6 +1,6 @@
 package com.gray.note.handling
 
-import com.gray.note.content_things.{ContentLoader, ContentTag, MdlLoader}
+import com.gray.note.content_things._
 import com.gray.util.ResourceIO
 
 trait SearchEngine {
@@ -67,7 +67,7 @@ trait SearchEngine {
 
 object SearchEngine{
   def apply(resourcePath: String): SearchEngine = new SearchEngine{
-    override private[handling] val contentLoader: ContentLoader = MdlLoader
+    override private[handling] val contentLoader: ContentLoader = SmartContentLoader
     override private[handling] val resourceIO: ResourceIO = new ResourceIO(resourcePath)
   }
 }

@@ -6,7 +6,7 @@ import com.gray.parse.mdlparse.MdlIterator
 
 class ParsingSteps extends BaseSteps with ParseConstants {
 
-  var parser: Option[ParseIterator] = None
+  var parser: Option[ContentParser] = None
   var tag: Option[ContentTag] = None
 
 
@@ -48,8 +48,8 @@ class ParsingSteps extends BaseSteps with ParseConstants {
   }
 
   When("""^the file is parsed with an mdl parser$""") { () =>
-    parser = Some(MdlIterator(rawString))
-    parseResults = Some(parser.get.iterate)
+    parser = Some(MdlIterator)
+    parseResults = Some(parser.get.apply(rawString))
   }
 
   When("""^we parse the (\d+)(st|nd|rd|th) item of the result$""") { (i: Int, arg0: String) =>

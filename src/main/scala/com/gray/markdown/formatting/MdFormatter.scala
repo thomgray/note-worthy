@@ -19,11 +19,11 @@ class MdFormatter(linkRefs: List[MdLinkRef]) extends DefaultFormatter with MdCha
     val headString = header.string
     val headerLength = header.string.length
     (header.size match {
-      case 1 => BOLD + header.string
-      case 2 => BOLD + header.string.toUpperCase
+      case 5 => BOLD + header.string
+      case 4 => BOLD + header.string.toUpperCase
       case 3 => UNDERLINED + BOLD + headString.toUpperCase
-      case 4 => BOLD + headString.toUpperCase + "\n" + concatenate("─", headerLength)
-      case 5 => BOLD + headString.toUpperCase + "\n" + concatenate("═", headerLength)
+      case 2 => BOLD + headString.toUpperCase + "\n" + concatenate("─", headerLength)
+      case 1 => BOLD + headString.toUpperCase + "\n" + concatenate("═", headerLength)
     }) + RESET
   }
 

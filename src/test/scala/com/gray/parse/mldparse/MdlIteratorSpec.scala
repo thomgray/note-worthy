@@ -9,35 +9,8 @@ import org.scalatest.exceptions.TestFailedException
 
 class MdlIteratorSpec extends FlatSpec with ParseConstants{
 
-    "MdlIterator" should "split text into lines" in {
-      val str = """hello there
-                  |this is a
-                  |few lines
-                  |innit
-                  |
-                """.stripMargin
-      val it = new MdlIterator(str)
-      it.lines.length mustBe 4
-    }
-
-    it should "preserve indentation" in {
-      val str =
-        """
-          | hello
-          |   there
-          |     how
-          |are you?
-        """.stripMargin
-      val lines = MdlIterator(str).lines
-      lines.length mustBe 4
-      lines(0) mustBe " hello"
-      lines(1) mustBe "   there"
-      lines(2) mustBe "     how"
-      lines(3) mustBe "are you?"
-    }
-
     "getRangeOfNextBlock" should "find the range of the block starting from the beginning" in {
-      val str =
+      val lines =
         """[[[ hello
           |sdf
           |sdfs
@@ -48,44 +21,43 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |]]]
           |sdfsdf
           |sdfs
-        """.stripMargin
-      val rng = new MdlIterator(str).getRangeOfNextBlock(0).get
+        """.stripMargin.split("\n")
+      val rng = MdlIterator.getRangeOfNextBlock(0, lines).get
       rng.start mustBe 0
       rng.end mustBe 8
     }
 
     it should "return a range starting from some way into the string" in {
-      val str =
+      val lines =
         """[[[hello
           |content
           |content
           |[[[label
           |]]]
           |]]]
-        """.stripMargin
-      val it = MdlIterator(str)
-      val rng = MdlIterator(str).getRangeOfNextBlock(1).get mustBe Ranj(3,5)
+        """.stripMargin.split("\n")
+      val rng = MdlIterator.getRangeOfNextBlock(1, lines).get mustBe Ranj(3,5)
     }
 
     it should "not return a range if no block exists" in {
-      val str =
+      val lines =
         """sdfsdf
           |sdfffsdfgdsfhsfghddf
-        """.stripMargin
-      val rng = MdlIterator(str).getRangeOfNextBlock(0) mustBe None
+        """.stripMargin.split("\n")
+      MdlIterator.getRangeOfNextBlock(0, lines) mustBe None
     }
 
     it should "not return a range if the next block doesn't close" in {
-      val str =
+      val lines =
         """[[[hello
           |[[[there
           |]]]
-        """.stripMargin
-      val rng = MdlIterator(str).getRangeOfNextBlock(0) mustBe None
+        """.stripMargin.split("\n")
+      MdlIterator.getRangeOfNextBlock(0, lines) mustBe None
     }
 
     "nextThing" should "get the first content tag" in {
-      val str =
+      val lines =
         """
           |[[[ label1;label2
           |content
@@ -93,17 +65,17 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |]]]
           |[[[more stuff
           |]]]
-        """.stripMargin
-      val it = MdlIterator(str)
-      val firstTag = it.nextThing.get
-      firstTag.string mustBe "content\ncontent"
-      firstTag.labels mustBe Some(List("label1", "label2"))
-      firstTag.options mustBe ""
-      firstTag.description mustBe CONTENT_TAG
+        """.stripMargin.split("\n")
+      val it = MdlIterator
+      val firstTag = it.nextThingFrom(0, lines, 0).get
+      firstTag._1.string mustBe "content\ncontent"
+      firstTag._1.labels mustBe Some(List("label1", "label2"))
+      firstTag._1.options mustBe ""
+      firstTag._1.description mustBe CONTENT_TAG
     }
 
     it should "get the second content tag" in {
-      val str =
+      val lines =
         """
           |[[[ label1;label2
           |content
@@ -111,18 +83,18 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |]]]
           |[[[more stuff
           |]]]
-        """.stripMargin
-      val it = MdlIterator(str)
-      it.nextThing
-      val firstTag = it.nextThing.get
-      firstTag.string mustBe ""
-      firstTag.labels mustBe Some(List("more stuff"))
-      firstTag.options mustBe ""
-      firstTag.description mustBe CONTENT_TAG
+        """.stripMargin.split("\n")
+      val it = MdlIterator
+      val thing1 = it.nextThingFrom(0, lines, 0)
+      val firstTag = it.nextThingFrom(thing1.get._2, lines, 0).get
+      firstTag._1.string mustBe ""
+      firstTag._1.labels mustBe Some(List("more stuff"))
+      firstTag._1.options mustBe ""
+      firstTag._1.description mustBe CONTENT_TAG
     }
 
     it should "get the first content string" in {
-      val str =
+      val lines =
         """some string
           |[[[ label1;label2
           |content
@@ -130,17 +102,17 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |]]]
           |[[[more stuff
           |]]]
-        """.stripMargin
-      val it = MdlIterator(str)
-      val firstTag = it.nextThing.get
-      firstTag.string mustBe "some string"
-      firstTag.labels mustBe None
-      firstTag.options mustBe ""
-      firstTag.description mustBe CONTENT_STRING
+        """.stripMargin.split("\n")
+      val it = MdlIterator
+      val firstTag = it.nextThingFrom(0, lines, 0).get
+      firstTag._1.string mustBe "some string"
+      firstTag._1.labels mustBe None
+      firstTag._1.options mustBe ""
+      firstTag._1.description mustBe CONTENT_STRING
     }
 
     it should "preserve indents" in {
-      val str =
+      val lines =
         """
           |   [[[ label1;label2
           |     content
@@ -148,17 +120,17 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |   ]]]
           |[[[more stuff
           |]]]
-        """.stripMargin
-      val it = MdlIterator(str)
-      val firstTag = it.nextThing.get
-      firstTag.string mustBe "  content\n  content"
-      firstTag.labels mustBe Some(List("label1", "label2"))
-      firstTag.options mustBe ""
-      firstTag.description mustBe CONTENT_TAG
+        """.stripMargin.split("\n")
+      val it = MdlIterator
+      val firstTag = it.nextThingFrom(0,lines,0).get
+      firstTag._1.string mustBe "  content\n  content"
+      firstTag._1.labels mustBe Some(List("label1", "label2"))
+      firstTag._1.options mustBe ""
+      firstTag._1.description mustBe CONTENT_TAG
     }
 
     it should "ignore empty whitespace between tags" in {
-      val str =
+      val lines =
         """[[[tag0
           |tag
           |]]]
@@ -170,19 +142,20 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
           |[[[tag2
           |]]]
           |
-        """.stripMargin
-      val it = MdlIterator(str)
-
+        """.stripMargin.split("\n")
+      val it = MdlIterator
+      var marker = 0
       for (i <- 0 until 3) {
-        val thing = it.nextThing.get
-        thing.description mustBe CONTENT_TAG
-        thing.labels.get.head mustBe s"tag$i"
+        val thing = it.nextThingFrom(marker, lines, 0).get
+        thing._1.description mustBe CONTENT_TAG
+        thing._1.labels.get.head mustBe s"tag$i"
+        marker = thing._2
       }
-      it.nextThing.isEmpty mustBe true
+      it.nextThingFrom(marker, lines, 0).isEmpty mustBe true
     }
 
   it should "remove the indentation inline with the header tag" in {
-    val str =
+    val lines =
       """   [[[tag0
         |   body
         |   ]]]
@@ -191,24 +164,27 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
         |]]]
         |   [[[tag2
         |     body
-        |   ]]]""".stripMargin
-    val it = MdlIterator(str)
-    it.nextThing match {
-      case Some(thing) => thing.string mustBe "body"
-      case None => assert (false)
+        |   ]]]""".stripMargin.split("\n")
+    val it = MdlIterator
+    var marker = 0
+    it.nextThingFrom(marker, lines, 0) match {
+      case Some(thing) => thing._1.string mustBe "body"
+        marker = thing._2
+      case None => fail
     }
-    it.nextThing match {
-      case Some(thing) => thing.string mustBe "body"
-      case None => assert (false)
+    it.nextThingFrom(marker, lines, 0) match {
+      case Some(thing) => thing._1.string mustBe "body"
+        marker = thing._2
+      case None => fail
     }
-    it.nextThing match {
-      case Some(thing) => thing.string mustBe "  body"
-      case None => assert (false)
+    it.nextThingFrom(marker, lines, 0) match {
+      case Some(thing) => thing._1.string mustBe "  body"
+      case None => fail
     }
   }
 
   it should "find the string within a tag result" in {
-    val str =
+    val lines =
       """[[[tag
         |
         |string
@@ -219,10 +195,10 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
         |
         |string2
         |]]]
-      """.stripMargin
-    val it = MdlIterator(str)
-    val res = it.nextThing
-    res.get.string mustBe
+      """.stripMargin.split("\n")
+    val it = MdlIterator
+    val res = it.nextThingFrom(0, lines, 0)
+    res.get._1.string mustBe
       """
         |string
         |
@@ -230,6 +206,6 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
         |inner string
         |]]]
         |
-        |string2""".stripMargin
+        |string2""".stripMargin.split("\n")
   }
 }

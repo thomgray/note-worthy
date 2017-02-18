@@ -51,6 +51,17 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
 
   def checkHeader() = if (lineMatchesRegex(headerRegex)) {
     Some(makeMdHeader(getLine))
+  } else if (lineMatchesRegex(nonIndentedAnthingRegex) && marker + 1 < lines.length) { // for cases with the underline ---- or =====
+    val nextLine = getLine(marker+1)
+    if (nextLine.matches("^ {0,3}\\-{3,} *$")) {
+      val translatedLine = "## " + getLine
+      marker += 1
+      Some(makeMdHeader(translatedLine))
+    }else if (nextLine.matches("^ {0,3}={3,} *$")) {
+      val translatedLine = "# " + getLine
+      marker += 1
+      Some(makeMdHeader(translatedLine))
+    }else None
   } else None
 
   def checkCodeBlock() = getRangeOfSpanRegex(codeBeginRegex, codeEndRegex) match {
@@ -68,12 +79,6 @@ protected[parsing] abstract class MdParsing extends MdParsingRuleBase with MdReg
     case None => None
   }
 
-//  def checkIndentedLiteral() = getRangeOfSolidBlock(indentedLiteralRegex) match {
-//    case Some(range) =>
-//      marker = range.end - 1
-//      Some(makeMdIndentedLiteral(getLines(range)))
-//    case None => None
-//  }
 
   def checkIndentedLiteral() = { // needs word still apparently
     def indexOfEndOfIndent(from: Int): Option[Int] = {
