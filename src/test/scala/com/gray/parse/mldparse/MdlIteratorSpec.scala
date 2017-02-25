@@ -206,6 +206,6 @@ class MdlIteratorSpec extends FlatSpec with ParseConstants{
         |inner string
         |]]]
         |
-        |string2""".stripMargin.split("\n")
+        |string2""".stripMargin
   }
 }

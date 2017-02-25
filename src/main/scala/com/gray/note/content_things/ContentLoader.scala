@@ -16,13 +16,13 @@ import com.gray.parse.mdparse.MdIterator
   * </dl>
   */
 trait ContentLoader extends ParseConstants {
-  private[content_things] def parser: ContentParser
+  private[content_things] def getParser: ContentParser
 
-  def getContent(string: String, path: String = "", offset: Int = 0): List[Content] = {
+  def getContent(string: String, path: String = "", parser: ContentParser = getParser, offset: Int = 0): List[Content] = {
     parser(string, offset) map {
       case result@ParseResult(string, _, CONTENT_TAG, _,_) =>
         val tag = new ContentTag(result, path)
-        val tagContents = getContent(string, path, offset + result.location.lineStart+1)
+        val tagContents = getContent(string, path, parser, result.location.lineStart+1)
         tag.setContents(tagContents)
         tag.getContents.foreach(t => t.setParent(Some(tag)))
         tag
@@ -36,7 +36,7 @@ trait ContentLoader extends ParseConstants {
   def getContentFromFile(path: String) = {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
     val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
-    val content = getContent(string, path)
+    val content = getContent(string, path, getParser)
     for {
       content0 <- content
       content1 <- content0.getAllDescendantContent
@@ -73,9 +73,9 @@ trait ContentLoader extends ParseConstants {
 }
 
 object MdlLoader extends ContentLoader {
-  override private[content_things] def parser: ContentParser = MdlIterator
+  override private[content_things] def getParser: ContentParser = MdlIterator
 }
 
 object MdLoader extends ContentLoader {
-  override private[content_things] def parser: ContentParser = MdIterator
+  override private[content_things] def getParser: ContentParser = MdIterator
 }

@@ -124,8 +124,8 @@ object Terminal {
   }
 
   def clear = {
-//    "printf \\033c".!
     "tput reset".!
+    console.clearScreen()
   }
 
   def restore = terminal.restore()

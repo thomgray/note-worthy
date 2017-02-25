@@ -5,8 +5,8 @@ import com.gray.util.Ranj
 import scala.collection.mutable
 import scala.util.matching.Regex
 
-abstract class AbstractAttributedString[+This](_string: String, _attributes: List[Attribute]) {
-  self: This =>
+abstract class AbstractAttributedString[+This](_string: String, _attributes: List[Attribute]) { self: This =>
+
   val string = _string
   val attributes: AttributeList = new AttributeList(_attributes)
 

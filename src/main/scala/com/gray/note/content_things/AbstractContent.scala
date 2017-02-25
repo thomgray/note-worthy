@@ -79,7 +79,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
   def isContentVisible = !parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
 
   def getQueryString : String = {
-    if (parentTag.isDefined) parentTag.get.getQueryString + getTitleString
+    if (parentTag.isDefined) s"${parentTag.get.getQueryString} $getTitleString"
     else getTitleString
   }
 }
@@ -100,6 +100,10 @@ class ContentString(str: String, path: String = "") extends Content {
 
   override val filePath: String = path
 
+}
+
+object ContentString extends ParseConstants {
+  def apply(string: String, path: String = "") = new ContentTag(ParseResult(string, None, CONTENT_STRING), path)
 }
 
 

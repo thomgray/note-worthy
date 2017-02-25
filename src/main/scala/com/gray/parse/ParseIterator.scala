@@ -23,7 +23,7 @@ trait ContentParser extends ParseConstants {
 case class ParseResult( string: String,
                         labels: Option[List[String]],
                         description: String,
-                        options: String,
+                        options: String = "",
                         location: Location = Location(0,0)
                       )
 
