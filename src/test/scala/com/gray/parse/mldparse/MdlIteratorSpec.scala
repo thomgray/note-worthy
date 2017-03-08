@@ -2,7 +2,7 @@ package com.gray.parse.mldparse
 
 import com.gray.parse.ParseConstants
 import com.gray.parse.mdlparse._
-import com.gray.util.Ranj
+import com.gray.note.util.Ranj
 import org.scalatest.MustMatchers._
 import org.scalatest._
 import org.scalatest.exceptions.TestFailedException

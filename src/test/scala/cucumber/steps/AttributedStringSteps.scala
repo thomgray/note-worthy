@@ -1,7 +1,7 @@
 package cucumber.steps
 
-import com.gray.util.Ranj
-import com.gray.util.attributed_string.{Attribute, AttributeValidator, AttributedString}
+import com.gray.note.util.Ranj
+import com.gray.note.util.attributed_string.{Attribute, AttributeValidator, AttributedString}
 import org.scalatest.MustMatchers
 
 import scala.io.AnsiColor

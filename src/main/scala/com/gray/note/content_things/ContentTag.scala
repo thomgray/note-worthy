@@ -2,7 +2,7 @@ package com.gray.note.content_things
 
 import com.gray.markdown.MdParagraph
 import com.gray.parse.{Location, ParseConstants, ParseResult}
-import com.gray.util.Formatting
+import com.gray.note.util.Formatting
 
 import scala.reflect.ClassTag
 

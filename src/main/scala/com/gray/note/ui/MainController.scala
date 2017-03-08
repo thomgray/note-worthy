@@ -1,10 +1,11 @@
 package com.gray.note.ui
 
+import com.gray.markdown.produce.MdParser
 import com.gray.note.Config
 import com.gray.note.Config._
 import com.gray.note.content_things.{ContentRenderer, ContentTag}
 import com.gray.note.handling.{ResultHandler, SearchEngine}
-import com.gray.util.WordIterator
+import com.gray.note.util.WordIterator
 import com.gray.note.ui.SearchHistorian.currentTag
 
 import scala.collection.mutable
@@ -56,8 +57,8 @@ object MainController extends ArgKeys {
   def handleOpen(string: String) = string match {
     case str if str == "+" && currentTag.isDefined =>
       resultHandler.openTagInAtom(currentTag.get)
-    case str if currentTag.isDefined =>
-      resultHandler.openURL(str)
+//    case str if currentTag.isDefined =>
+//      resultHandler.openURL(str)
     case _ =>
   }
 

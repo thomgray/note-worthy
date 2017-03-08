@@ -1,7 +1,7 @@
 package com.gray.note.handling
 
 import com.gray.note.content_things._
-import com.gray.util.ResourceIO
+import com.gray.note.util.ResourceIO
 
 trait SearchEngine {
   private[handling] val contentLoader: ContentLoader

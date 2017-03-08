@@ -57,37 +57,27 @@ object Terminal {
     }
   })
 
-  console.addCompleter(new Completer {
-    override def complete(s: String, i: Int, list: util.List[CharSequence]): Int =
-      if (s.trim.startsWith(Config.urlOpenCommand)) {
-        val string = s.trim.stripPrefix(Config.urlOpenCommand).trim
-        val links = MainController.resultHandler.currentTagURLS.map(l=>l.inlineString.getOrElse(l.url))
-        links.filter(_.startsWith(string)) match {
-          case list if list.length == 1 =>
-            console.putString(list.head.stripPrefix(string.trim))
-            0
-          case list if links.length > 1 =>
-            console.print("\n"+list.mkString("\t")+"\n")
-            console.drawLine()
-            val remainder = finishStringWithAutocompleteOptions(list, string)
-            console.putString(remainder)
-            0
-          case list => -1
-        }
-
-      0
-    }else -1
-  })
-
-  def tryThis = {
-    terminal.reset()
-    console.flush()
-    console.readLine()
-    val process =  Runtime.getRuntime.exec(Array[String]("vi", "/tmp/tempFile"))
-    terminal.reset()
-    console.readLine()
-
-  }
+//  console.addCompleter(new Completer {
+//    override def complete(s: String, i: Int, list: util.List[CharSequence]): Int =
+//      if (s.trim.startsWith(Config.urlOpenCommand)) {
+//        val string = s.trim.stripPrefix(Config.urlOpenCommand).trim
+//        val links = MainController.resultHandler.currentTagURLS.map(l=>l.inlineString.getOrElse(l.url))
+//        links.filter(_.startsWith(string)) match {
+//          case list if list.length == 1 =>
+//            console.putString(list.head.stripPrefix(string.trim))
+//            0
+//          case list if links.length > 1 =>
+//            console.print("\n"+list.mkString("\t")+"\n")
+//            console.drawLine()
+//            val remainder = finishStringWithAutocompleteOptions(list, string)
+//            console.putString(remainder)
+//            0
+//          case list => -1
+//        }
+//
+//      0
+//    }else -1
+//  })
 
 
   def finishStringWithAutocompleteOptions(autoCompletes: List[String], string: String) = {

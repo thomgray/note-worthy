@@ -29,7 +29,7 @@ object SmartContentLoader extends ContentLoader {
     }else if (extension=="md") {
       MdIterator
     } else {
-      throw new Exception(s"cannot suggest a parser for file with extention $extension with content \n$string")
+      MdlIterator
     }
   }
 

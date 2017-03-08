@@ -1,7 +1,7 @@
 package com.gray.note.handling
 
 import com.gray.note.content_things.ContentLoader
-import com.gray.util.ResourceIO
+import com.gray.note.util.ResourceIO
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers._

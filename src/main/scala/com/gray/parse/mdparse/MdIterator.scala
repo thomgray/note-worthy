@@ -1,6 +1,6 @@
 package com.gray.parse.mdparse
 
-import com.gray.markdown.MdHeader
+import _root_.com.gray.markdown.{MdHeader, MdString}
 import com.gray.parse.{ContentParser, Location, ParseResult}
 
 object MdIterator extends ContentParser {
@@ -56,7 +56,7 @@ object MdIterator extends ContentParser {
   def rageOfNextHeaderBlock(from: Int, linesArray: Array[String]) = {
     indexOfNextHeader(from, linesArray) match {
       case Some((i, header)) =>
-        val end = indexOfNextHeader(i + 1, linesArray, header.size) match {
+        val end = indexOfNextHeader(i + 1, linesArray, header.value) match {
           case Some((j, header2)) => j
           case None => linesArray.length
         }
@@ -68,7 +68,7 @@ object MdIterator extends ContentParser {
   def indexOfNextHeader(from: Int, linesArray: Array[String], tier: Int = 0): Option[(Int, MdHeader)] = {
     for (i <- from until linesArray.length) {
       readMdHeader(linesArray(i)) match {
-        case Some(header) if header.size <= tier | tier == 0 => return Some((i, header))
+        case Some(header) if header.value <= tier | tier == 0 => return Some((i, header))
         case _ =>
       }
     }
@@ -116,7 +116,7 @@ object MdIterator extends ContentParser {
 
   def readMdHeader(line: String) = {
     line match {
-      case trimmedHeaderRegex(match1, match2) => Some(MdHeader(match2, match1.length))
+      case trimmedHeaderRegex(match1, match2) => Some(MdHeader(MdString(match2), match1.length))
       case _ => None
     }
   }
@@ -132,12 +132,12 @@ object MdIterator extends ContentParser {
     val string = lines.slice(start+1, end).mkString("\n")
     val location = Location(start+offset, end+offset)
 
-    val labels = header.string match {
+    val labels = header.mdString.string match {
       case `optionalLabelsRegex`(title, optionals) =>
         val optionalsList = optionals.split(";").toList.map(_.trim.toLowerCase)
         title.trim.toLowerCase +: optionalsList
       case _ =>
-        List(header.string.trim.toLowerCase)
+        List(header.mdString.string.trim.toLowerCase)
     }
     ParseResult(string, Some(labels), CONTENT_TAG, "", location)
   }

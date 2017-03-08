@@ -1,7 +1,7 @@
 package com.gray.parse.mdlparse
 
 import com.gray.parse.{ContentParser, Location, ParseResult}
-import com.gray.util.{Formatting, Ranj}
+import com.gray.note.util.{Formatting, Ranj}
 
 object MdlIterator extends ContentParser with MdlParseConstants with Formatting {
 

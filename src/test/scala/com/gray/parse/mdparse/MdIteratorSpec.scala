@@ -1,12 +1,14 @@
 package com.gray.parse.mdparse
 
-import com.gray.markdown.MdHeader
+import com.gray.markdown.{MdHeader, MdString}
 import com.gray.parse.{Location, ParseConstants, ParseResult}
 import org.scalatest.{FlatSpec, Matchers}
 
 class MdIteratorSpec extends FlatSpec with Matchers with ParseConstants {
+  import scala.language.implicitConversions
 
   val iterator = MdIterator
+  implicit def stringToMdString(string: String): MdString = MdString(string)
 
   it should "load content tags from md formatted reading from the header" in {
     val str =
