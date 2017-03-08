@@ -14,8 +14,10 @@ trait ContentRenderer {
       case string: ContentString => true
       case _ => false
     } flatMap {
-      case tag: ContentTag => MdHeader(MdString(tag.getTitleString), 5) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
-      case string: ContentString => getMdContentsFromContentString(string)
+      case tag: ContentTag =>
+        MdHeader(MdString(tag.getTitleString), 5) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
+      case string: ContentString =>
+        getMdContentsFromContentString(string)
     }
     renderParagraphs(paragraphs, width)
   }
@@ -23,7 +25,8 @@ trait ContentRenderer {
   private def getMdContentsFromContentString(string: ContentString) = {
     string.format match {
       case "txt" => List(MdPlainString(string.getString))
-      case "md" => MdParser.parse(string.getString).paragraphs
+      case "md" =>
+        MdParser.parse(string.getString).paragraphs
     }
   }
 

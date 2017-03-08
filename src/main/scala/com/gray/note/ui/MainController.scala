@@ -129,7 +129,6 @@ object MainController extends ArgKeys {
   def printTag(tag: ContentTag, popResult: Boolean = true) = {
     terminal.clear
     if (popResult) historian.popSearchResult(tag)
-
     println(TagRenderer.getHierarchyDiagram(tag))
     println()
     println(renderer.renderTag(tag, terminal.width))
