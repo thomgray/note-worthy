@@ -35,7 +35,7 @@ class AutocompleteSteps extends BaseSteps with ScalaDsl {
   }
 
   Then("""^I get receive a list containing "([^"]*)"$"""){ (arg0:String) =>
-    autoCompleteResult.contains(arg0) mustBe true
+    autoCompleteResult must contain(arg0)
   }
 
 }

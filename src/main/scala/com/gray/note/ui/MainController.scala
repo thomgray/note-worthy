@@ -57,8 +57,8 @@ object MainController extends ArgKeys {
   def handleOpen(string: String) = string match {
     case str if str == "+" && currentTag.isDefined =>
       resultHandler.openTagInAtom(currentTag.get)
-//    case str if currentTag.isDefined =>
-//      resultHandler.openURL(str)
+    case str if currentTag.isDefined =>
+      resultHandler.openURL(str)
     case _ =>
   }
 

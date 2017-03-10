@@ -8,7 +8,7 @@
 
       When I autocomplete "top"
       Then I receive a list with 1 item
-      Then I get receive a list containing "ic manager"
+      Then I get receive a list containing "topic manager"
 
     Scenario: Autocomplete with a base tag
       Given a search engine exists that points to a resource directory
@@ -16,4 +16,4 @@
 
       When I autocomplete "topic manager archi"
       Then I receive a list with 1 item
-      Then I get receive a list containing "tecture"
+      Then I get receive a list containing "architecture"

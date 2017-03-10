@@ -50,7 +50,7 @@ class AutoCompleter(searchEngine: SearchEngine) {
         case list =>
           // I know that query is a match for baseList, and that extension is a partial match for an existing child node
           // list is a list of the partially matching children
-          result = list.map(_.getTitleString.stripPrefix(extension))
+          result = list.map(_.getTitleString)
           true
       }
     }

@@ -15,8 +15,8 @@ trait ResultHandler {
 
   def apply(contentTag: ContentTag) = {
     currentTag = Some(contentTag)
-//    currentParagraphs = paragraphsForTag(contentTag)
-//    currentTagURLS = gatherLinks(currentParagraphs)
+    currentParagraphs = paragraphsForTag(contentTag)
+    currentTagURLS = gatherLinks(currentParagraphs)
   }
 
   def paragraphsForTag(contentTag: ContentTag) = contentTag.getContents filter {
@@ -34,22 +34,22 @@ trait ResultHandler {
       case "md" => MdParser.parse(string.getString).paragraphs
     }
   }
-//
-//  def gatherLinks(mdParagraphs: List[MdParagraph]) = {
-//    val links = mdParagraphs.flatMap(gatherLinksForParagraph)
-//    var linkNumber = 1
-//    links.foreach { l => l.index = linkNumber; linkNumber += 1 }
-//    links
-//  }
-//
-//  private def gatherLinksForParagraph(mdParagraph: MdParagraph): List[MdLink] = mdParagraph match {
-//    case string: MdString => string.links.map(_._1)
-//    case list: MdList =>
-//      list.items.flatMap(_.items.flatMap(gatherLinksForParagraph))
-//    case _ => List.empty
-//  }
 
-//  def openURL(string: String) = {
+  def gatherLinks(mdParagraphs: List[MdParagraph]) = {
+    mdParagraphs.flatMap(gatherLinksForParagraph)
+  }
+
+  private def gatherLinksForParagraph(mdParagraph: MdParagraph): List[MdLink] = mdParagraph match {
+    case string: MdString => string.links()
+    case list: MdList[MdListItem] =>
+      list.items.collect({
+        case linkable: MdLinkable => linkable
+      }).flatMap(gatherLinksForParagraph)
+    case _ => List.empty
+  }
+
+  def openURL(string: String) = {
+    s"open $string"!
 //    if (string.forall(_.isDigit) && string.toInt < currentTagURLS.length) {
 //      val index = string.toInt
 //      currentTagURLS(index).open
@@ -61,7 +61,7 @@ trait ResultHandler {
 //        case None =>
 //      }
 //    }
-//  }
+  }
 
   def openTagInAtom(tag: ContentTag) = {
     val location = s"${tag.location.lineStart+1}:${tag.location.columnStart+1}"
