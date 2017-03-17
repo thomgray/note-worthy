@@ -2,6 +2,7 @@ package com.gray.note.content_things
 
 import java.io.File
 
+import com.gray.markdown.@@
 import com.gray.parse._
 import com.gray.parse.mdlparse.MdlIterator
 import com.gray.parse.mdparse.MdIterator
@@ -18,34 +19,36 @@ import com.gray.parse.mdparse.MdIterator
 trait ContentLoader extends ParseConstants {
   private[content_things] def getParser: ContentParser
 
-  def getContent(string: String, path: String = "", parser: ContentParser = getParser, offset: Int = 0): List[Content] = {
-    parser(string, offset) map {
-      case result@ParseResult(string, _, CONTENT_TAG, _,_) =>
-        val tag = new ContentTag(result, path)
-        val tagContents = getContent(string, path, parser, result.location.lineStart+1)
-        tag.setContents(tagContents)
-        tag.getContents.foreach(t => t.setParent(Some(tag)))
-        tag
-      case result@ParseResult(_, _, CONTENT_ALIAS, _, _) =>
-        new ContentTagAlias(result)
-      case result@ParseResult(str, _, CONTENT_STRING, _, _) =>
-        new ContentString(str)
+  def getContent(string: String, path: String = "", parser: ContentParser = getParser): List[Content] = {
+    val mdParagraphs = parser(string)
+    translateResultsToContent(mdParagraphs, path)
+  }
+
+  def translateResultsToContent(results: List[AbstractParseResult], path: String): List[Content] = {
+    results map {
+      case StringParseResult(pars) =>
+        new ContentString(
+          pars,
+          "",
+          @@(pars.head.location.startLine, pars.last.location.endLine),
+          path
+        )
+      case TagParseResult(pars, header, altLabels) =>
+        val contents = translateResultsToContent(pars, path)
+        new ContentTag(
+          contents,
+          header,
+          altLabels,
+          @@(header.location.startLine, contents.lastOption.map(_.location).getOrElse(header.location).endLine),
+          path
+        )
     }
   }
 
   def getContentFromFile(path: String) = {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
     val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
-    val content = getContent(string, path, getParser)
-    for {
-      content0 <- content
-      content1 <- content0.getAllDescendantContent
-      if content1.isInstanceOf[ContentString]
-      _ = content1.asInstanceOf[ContentString].setFormat(extn)
-    } yield ()
-    content match {
-      case other => other
-    }
+    getContent(string, path, getParser)
   }
 
   def getContentFromDirectory(path: String) = {
@@ -63,10 +66,13 @@ trait ContentLoader extends ParseConstants {
         CONTENT_TAG,
         ""
       )
-      val newContent = new ContentTag(dummyResult)
-      val contents = list flatMap (_.getContents)
-      newContent.setContents(contents)
-      newContent
+      new ContentTag(
+        list.flatMap(_.contents),
+        list.head.header,
+        list.flatMap(_.altLabels),
+        list.head.location,
+        list.head.path
+      )
     }
   }
 

@@ -1,13 +1,15 @@
 package com.gray.parse.mdlparse
 
-import com.gray.parse.{ContentParser, Location, ParseResult}
+import com.gray.markdown.{MdHeader, MdLocation, MdString}
+import com.gray.note.content_things.MdPlainString
+import com.gray.parse._
 import com.gray.note.util.{Formatting, Ranj}
 
 object MdlIterator extends ContentParser with MdlParseConstants with Formatting {
 
   val blankRegex = "^\\s*$".r
 
-  def nextThingFrom(marker: Int, lines: Array[String], offset: Int): Option[(ParseResult, Int)] = {
+  def nextThingFrom(marker: Int, lines: Array[String], offset: Int): Option[(AbstractParseResult, Int)] = {
     val end = lines.length
     getRangeOfNextBlock(marker, lines) match {
       case range@Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start, lines) =>
@@ -34,7 +36,7 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     val chevronPrefix = s"^\\[{3,}(\\$PARENT_VISIBLE_FLAG|\\$UNIVERSAL_REFERENCE_FLAG|\\$CONTENT_INVISIBLE_FLAG| )*".r.findFirstIn(firstLine).get
 
     val labels = firstLine.stripPrefix(chevronPrefix).split(";").map(_.trim).toList
-    val string = _lines.slice(1, _lines.length-1).mkString("\n")
+    val innerLines = _lines.slice(1, _lines.length-1)
 
     var argString = ""
     if (chevronPrefix.contains(PARENT_VISIBLE_FLAG)) argString += PARENT_VISIBLE_FLAG
@@ -44,9 +46,10 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     val colStart = "\\[{3,}".r.findFirstMatchIn(lines.head).get.end
     val colEnd = "\\]{3,}".r.findFirstMatchIn(lines.last).get.start
 
-    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val headerLocation = MdLocation(ranj.start + offset, ranj.start + offset + 1)
 
-    ParseResult(string, Some(labels), CONTENT_TAG, argString, location)
+    TagParseResult(getResultsFromLines(innerLines, ranj.start + offset), MdHeader(MdString(labels.head, headerLocation), 1, headerLocation), labels.tail)
   }
 
   private def handleStringLine(lines: Array[String], ranj: Ranj, offset: Int) = {
@@ -55,9 +58,9 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
 
     val colStart = "\\S".r.findFirstMatchIn(sensibleLines.head).get.end + 1
     val colEnd = "\\S*$".r.findFirstMatchIn(sensibleLines.last).get.start + 1
-    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
 
-    ParseResult(string1, None, CONTENT_STRING, "", location)
+    StringParseResult(List(MdPlainString(string1, location)))
   }
   
   private def handleLink(line: String, ranj: Ranj) = {
@@ -101,11 +104,10 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
       yield true).isEmpty
   }
 
-  override def apply(string: String, linesOffset: Int): List[ParseResult] = {
+  protected def getResultsFromLines(lines: Array[String], offset: Int): List[AbstractParseResult] = {
     var marker = 0
-    val lines = string.split("(\\n|\\r)")
-    var list = List.empty[ParseResult]
-    while (nextThingFrom(marker, lines, linesOffset) match {
+    var list = List.empty[AbstractParseResult]
+    while (nextThingFrom(marker, lines, offset) match {
       case Some((res, newMarker)) =>
         list = list :+ res
         marker = newMarker
@@ -114,4 +116,8 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     }){}
     list
   }
+
+  override def apply(string: String): List[AbstractParseResult] =
+    getResultsFromLines(string.split("(\\n|\\r)"), 0)
+
 }

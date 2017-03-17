@@ -1,7 +1,6 @@
 package com.gray.note.content_things
 
-import com.gray.parse.Location
-import com.gray.parse.mdparse.MdIterator
+import com.gray.markdown.MdLocation
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ContentLoaderSpec extends FlatSpec with MustMatchers {
@@ -14,9 +13,18 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
         |content
         |]]]
       """.stripMargin
-    val results = mdlLoader getContent (str)
+    val results = mdlLoader getContent str
     results.length mustBe 1
-    results(0).getString mustBe "content"
+    results.head mustBe a [ContentTag]
+    val tag = results.head.asInstanceOf[ContentTag]
+    tag.contents.length mustBe 1
+    tag.contents.head mustBe a [ContentString]
+    val contentString = tag.contents.head.asInstanceOf[ContentString]
+    contentString.paragraphs.length mustBe 1
+    contentString.paragraphs.head mustBe a [MdPlainString]
+    contentString.paragraphs.head.asInstanceOf[MdPlainString].string mustBe "content"
+    tag.header.mdString.string mustBe "tag"
+    tag.altLabels mustBe Nil
   }
 
   it should "set the content of a content tag" in {
@@ -36,9 +44,9 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     val tags = mdlLoader.getContent(str)
     tags.length mustBe 1
     val baseTag = tags.head.asInstanceOf[ContentTag]
-    val contents = baseTag.getContents
+    val contents = baseTag.contents
     val gets = baseTag.get[ContentString]
-    gets.map(_.paragraphs())
+
     contents.length mustBe 3
     contents(0) mustBe a[ContentString]
     contents(1) mustBe a[ContentTag]
@@ -57,8 +65,8 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     val outer = result.head.asInstanceOf[ContentTag]
     val inner = outer.getTagContents.head
 
-    outer.location.lineStart mustBe 0
-    inner.location.lineStart mustBe 2
+    outer.location.startLine mustBe 0
+    inner.location.startLine mustBe 2
   }
 
   val markdownLoader = MdLoader
@@ -102,12 +110,12 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
         |third bit of content""".stripMargin
 
     val results = markdownLoader.getContent(str).head.asInstanceOf[ContentTag]
-    results.location.lineStart mustBe 0
-    results.location.lineEnd mustBe 10
+    results.location.startLine mustBe 0
+    results.location.endLine mustBe 10
 
-    results.getTagContents.head.location mustBe Location(5, 10)
+    results.getTagContents.head.location mustBe MdLocation(5, 10)
 
-    results.getTagContents.head.getTagContents.head.location mustBe Location(8, 10)
+    results.getTagContents.head.getTagContents.head.location mustBe MdLocation(8, 10)
   }
 
   it should "get content tags and string" in {
@@ -124,9 +132,9 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
         |third bit of content""".stripMargin
 
     val result1 = markdownLoader.getContent(str).head.asInstanceOf[ContentTag]
-    result1.getContents.length mustBe 2
-    result1.getContents(0) mustBe a[ContentString]
-    result1.getContents(1) mustBe a[ContentTag]
+    result1.contents.length mustBe 2
+    result1.contents(0) mustBe a[ContentString]
+    result1.contents(1) mustBe a[ContentTag]
   }
 
   it should "find content with nested aliases" in {
@@ -148,7 +156,7 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     res2 mustBe a [ContentTag]
 
     val res2Tag = res2.asInstanceOf[ContentTag]
-    val innerContent = res2Tag.getContents
+    val innerContent = res2Tag.contents
 
     innerContent(0) mustBe a [ContentTagAlias]
     val innerAlias = innerContent(0).asInstanceOf[ContentTagAlias]

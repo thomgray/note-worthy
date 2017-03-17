@@ -3,19 +3,20 @@ package com.gray.note.content_things
 import com.gray.markdown.produce.MdParser
 import com.gray.markdown._
 import com.gray.markdown.render.MdRenderer
+import sun.security.util.PendingException
 
 import scala.collection.mutable
 
 trait ContentRenderer {
 
   def renderTag(contentTag: ContentTag, width: Int) = {
-    val paragraphs = contentTag.getContents filter {
+    val paragraphs = contentTag.contents filter {
       case tag: ContentTag if tag.isParentVisible => true
       case string: ContentString => true
       case _ => false
     } flatMap {
       case tag: ContentTag =>
-        MdHeader(MdString(tag.getTitleString), 5) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
+        MdHeader(MdString(tag.getTitleString, @@(0,0)), 5, @@(0,0)) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
       case string: ContentString =>
         getMdContentsFromContentString(string)
     }
@@ -24,9 +25,10 @@ trait ContentRenderer {
 
   private def getMdContentsFromContentString(string: ContentString) = {
     string.format match {
-      case "txt" => List(MdPlainString(string.getString))
+      case "txt" => List(MdPlainString(string.getString, @@(0,0)))
       case "md" =>
         MdParser.parse(string.getString).paragraphs
+      case other => throw new PendingException(s"awaiting for tag: $string")
     }
   }
 

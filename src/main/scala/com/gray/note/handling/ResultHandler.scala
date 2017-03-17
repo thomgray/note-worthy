@@ -3,6 +3,7 @@ package com.gray.note.handling
 import com.gray.markdown._
 import com.gray.markdown.produce.MdParser
 import com.gray.note.content_things.{ContentString, ContentTag}
+import sun.security.util.PendingException
 
 import sys.process._
 
@@ -19,19 +20,21 @@ trait ResultHandler {
     currentTagURLS = gatherLinks(currentParagraphs)
   }
 
-  def paragraphsForTag(contentTag: ContentTag) = contentTag.getContents filter {
+  def paragraphsForTag(contentTag: ContentTag) = contentTag.contents filter {
     case tag: ContentTag if tag.isParentVisible => true
     case string: ContentString => true
     case _ => false
   } flatMap {
-    case tag: ContentTag => MdHeader(MdString(tag.getTitleString), 5) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
+    case tag: ContentTag => MdHeader(MdString(tag.getTitleString, @@(0,0)), 5, @@(0,0)) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
     case string: ContentString => getMdContentsFromContentString(string)
+    case other => throw new PendingException(s"need to apply match for tag: $other")
   }
 
   private def getMdContentsFromContentString(string: ContentString): List[MdParagraph] = {
     string.format match {
-      case "txt" => List(MdString(string.getString))
+      case "txt" => List(MdString(string.getString, @@(0,0)))
       case "md" => MdParser.parse(string.getString).paragraphs
+      case other => List(MdString("foo", @@(1,1)))
     }
   }
 
@@ -49,22 +52,13 @@ trait ResultHandler {
   }
 
   def openURL(string: String) = {
-    s"open $string"!
-//    if (string.forall(_.isDigit) && string.toInt < currentTagURLS.length) {
-//      val index = string.toInt
-//      currentTagURLS(index).open
-//    } else {
-//      if (string.forall(_.isDigit)) println(s"tried to open an url [$string] but there are not enough links!")
-//      currentTagURLS.find(l => l.inlineString.getOrElse(l.url) == string) match {
-//        case Some(link) =>
-//          link.open
-//        case None =>
-//      }
-//    }
+    if (string.startsWith("http")){
+      s"open $string"!
+    }  else s"open https://$string".!
   }
 
   def openTagInAtom(tag: ContentTag) = {
-    val location = s"${tag.location.lineStart+1}:${tag.location.columnStart+1}"
+    val location = s"${tag.location.startLine+1}:${tag.location.startColumn+1}"
     println(s"Opening ${tag.filePath}:$location")
     s"atom ${tag.filePath}:$location".!
   }

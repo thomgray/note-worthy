@@ -90,7 +90,7 @@ class AutoCompleterSpec extends FlatSpec with Matchers with BeforeAndAfter with 
         |
         |]]]
       """.stripMargin
-    val tags = MdlLoader.getContent(str).asInstanceOf[List[ContentTag]]
+    val tags = MdlLoader.getContent(str, "").asInstanceOf[List[ContentTag]]
 
     when (stubSearchEngine.getContentWithQuery("label1")) thenReturn tags
 

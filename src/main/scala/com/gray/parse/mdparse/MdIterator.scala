@@ -1,159 +1,78 @@
 package com.gray.parse.mdparse
 
-import _root_.com.gray.markdown.{MdHeader, MdString}
-import com.gray.parse.{ContentParser, Location, ParseResult}
+import _root_.com.gray.markdown._
+import com.gray.markdown.produce.MdParser
+import com.gray.note.content_things.MdAlias
+import com.gray.parse._
+
+import scala.util.control.Breaks._
 
 object MdIterator extends ContentParser {
-
-  def nextThingFrom(marker:Int, linesArray: Array[String], offset: Int): Option[(List[ParseResult], Int)] = {
-    rageOfNextHeaderBlock(marker, linesArray) match {
-      case Some((i, j, header)) if marker < i && linesAreNonBlank(linesArray.slice(marker, i)) =>
-//        val str = linesArray.slice(marker, i).mkString("\n")
-//        Some(
-//          ParseResult(
-//            str,
-//            None,
-//            CONTENT_STRING,
-//            "",
-//            Location(marker+offset, i+offset)
-//          ),
-//          i
-//        )
-        val list = splitStringIntoStringAlias(marker, i, linesArray, offset)
-        Some(list, i)
-      case Some((i,j,header)) =>
-        Some(List(handleContentTag(i,j,header,linesArray, offset)), j)
-      case None if marker < linesArray.length =>
-        val list = splitStringIntoStringAlias(marker, linesArray.length, linesArray, offset)
-        Some(list, linesArray.length)
-//        val slice = linesArray.slice(marker, linesArray.length)
-//        if (linesAreNonBlank(slice)) {
-//          val str = slice.mkString("\n")
-//          Some(
-//            ParseResult(
-//              str,
-//              None,
-//              CONTENT_STRING,
-//              "",
-//              Location(marker, linesArray.length)
-//            ),
-//            linesArray.length
-//          )
-//        }else None
-      case _ => None
-    }
-  }
-
   val aliasRegex = """^\[(.+)\] *<(.*)>$""".r
 
-  def getAlias(string: String, i: Int) = string match {
-    case aliasRegex(group1, group2) =>
-      val labels = group1.split(";").map(_.toLowerCase).toList
-      Some(ParseResult(group2, Some(labels), CONTENT_ALIAS, "", Location(i, i)))
-    case _ => None
+  val mdparser = new MdParser {
+    override val checks: List[(List[String], Int, Int) => Option[(MdParagraph, Int)]] = defaultChecks ++ List(
+      (lines: List[String], marker: Int, offset: Int) => aliasRegex.findFirstMatchIn(lines(marker)) map { mtch =>
+        (MdAlias(mtch.group(1), mtch.group(2), @@(0,0)), marker+1)
+      }
+    )
   }
 
-  def rageOfNextHeaderBlock(from: Int, linesArray: Array[String]) = {
-    indexOfNextHeader(from, linesArray) match {
-      case Some((i, header)) =>
-        val end = indexOfNextHeader(i + 1, linesArray, header.value) match {
-          case Some((j, header2)) => j
-          case None => linesArray.length
-        }
-        Some((i, end, header))
-      case None => None
+  def getMdContent(string: String, path: String, format: String) = {
+    val document = mdparser.parse(string)
+    getMdContentPart(document.paragraphs)
+  }
+
+  protected def getMdContentPart(paragraphs: List[MdParagraph]): List[AbstractParseResult] = {
+    var content: List[AbstractParseResult] = paragraphs.takeWhile(!_.isInstanceOf[MdHeader]) match {
+      case Nil => Nil
+      case list => List(StringParseResult(list))
     }
-  }
-
-  def indexOfNextHeader(from: Int, linesArray: Array[String], tier: Int = 0): Option[(Int, MdHeader)] = {
-    for (i <- from until linesArray.length) {
-      readMdHeader(linesArray(i)) match {
-        case Some(header) if header.value <= tier | tier == 0 => return Some((i, header))
-        case _ =>
+    var mark = 0
+    breakable {
+      while (true) {
+        rangeOfNextHeaderBlock(paragraphs, 0, mark) match {
+          case Some((header, start, end)) =>
+            val tagContent =getMdContentPart(paragraphs.slice(start+1, end))
+            content = content :+ TagParseResult(tagContent, header, Nil)
+            mark = end
+          case None =>
+            break
+        }
       }
     }
-    None
+    content
+  }
+
+  private def rangeOfNextHeaderBlock(paragraphs: List[MdParagraph], value: Int, from: Int) = {
+    var realValue = value
+    paragraphs.indexWhere({
+      case MdHeader(_,hValue,_) =>
+        val check = hValue >= realValue
+        if (check) realValue = hValue
+        check
+      case _ => false
+    }, from) match {
+      case -1 => None
+      case other =>
+        val endIndex = paragraphs.indexWhere({
+          case MdHeader(_,hvalue,_) => hvalue <= realValue
+          case _ => false
+        }, other+1) match {
+          case -1 => paragraphs.length
+          case other2 => other2
+        }
+
+        val header = paragraphs(other).asInstanceOf[MdHeader]
+        Some(header, other, endIndex)
+    }
   }
 
   private val trimmedHeaderRegex = "(#{1,5}) +(.*)".r
 
-  def splitStringIntoStringAlias(from: Int, to: Int, lines: Array[String], offset: Int) = {
-    var list : List[ParseResult] = List.empty
-    var marker = from
-    while (nextAlias(marker, to, lines, offset) match {
-      case Some((result, aliasIndex)) =>
-        val addition = marker < aliasIndex match {
-          case true => Some(handleString(marker, aliasIndex, lines, offset))
-          case false => None
-        }
-        list = list ++ addition :+ result
-        marker = aliasIndex + 1
-        true
-      case None =>
-        if (marker < to) {
-          list = list :+ handleString(marker, to, lines, offset)
-        }
-        false
-    }){}
-    list
-  }
-
-  def nextAlias(from: Int, to: Int, lines: Array[String], offset: Int): Option[(ParseResult, Int)]= {
-    for (i <- from until to) {
-      getAlias(lines(i), i+offset) match {
-        case Some(aliasResult) =>
-          return Some(aliasResult, i)
-        case _ =>
-      }
-    }
-    None
-  }
-
-  def handleString(from: Int, to: Int, lines: Array[String], offset: Int) = {
-    val string = lines.slice(from, to).mkString("\n")
-    ParseResult(string, None, CONTENT_STRING, "", Location(from+offset, to+offset))
-  }
-
-  def readMdHeader(line: String) = {
-    line match {
-      case trimmedHeaderRegex(match1, match2) => Some(MdHeader(MdString(match2), match1.length))
-      case _ => None
-    }
-  }
-
-  private def linesAreNonBlank(array: Array[String]) = {
-    array.exists(!_.matches("\\s*"))
-  }
-
-
-  private val optionalLabelsRegex = "^(.*?)(?:\\[(.*)\\])$".r
-
-  private def handleContentTag(start: Int, end: Int, header: MdHeader, lines: Array[String], offset: Int) = {
-    val string = lines.slice(start+1, end).mkString("\n")
-    val location = Location(start+offset, end+offset)
-
-    val labels = header.mdString.string match {
-      case `optionalLabelsRegex`(title, optionals) =>
-        val optionalsList = optionals.split(";").toList.map(_.trim.toLowerCase)
-        title.trim.toLowerCase +: optionalsList
-      case _ =>
-        List(header.mdString.string.trim.toLowerCase)
-    }
-    ParseResult(string, Some(labels), CONTENT_TAG, "", location)
-  }
-
-  override def apply(string: String, linesOffset: Int): List[ParseResult] = {
-    var marker = 0
-    val lines = string.split("(\\n|\\r)")
-    var list = List.empty[ParseResult]
-    while (nextThingFrom(marker, lines, linesOffset) match {
-      case Some((res, newMarker)) =>
-        list = list ++ res
-        marker = newMarker
-        true
-      case None => false
-    }){}
-    list
+  override def apply(string: String): List[AbstractParseResult] = {
+    val document = mdparser.parse(string)
+    getMdContentPart(document.paragraphs)
   }
 
 }

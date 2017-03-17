@@ -1,23 +1,9 @@
 package com.gray.parse
 
-abstract class ParseIterator(linesOffset: Int = 0) extends ParseConstants {
-
-  def nextThing: Option[ParseResult]
-
-  def iterate: List[ParseResult] = {
-    var list = List.empty[ParseResult]
-    while (nextThing match {
-      case Some(res) =>
-        list = list :+ res
-        true
-      case None => false
-    }){}
-    list
-  }
-}
+import com.gray.markdown.{MdHeader, MdParagraph}
 
 trait ContentParser extends ParseConstants {
-  def apply(string: String, linesOffset: Int = 0): List[ParseResult]
+  def apply(string: String): List[AbstractParseResult]
 }
 
 case class ParseResult( string: String,
@@ -29,6 +15,12 @@ case class ParseResult( string: String,
 
 case class Location(lineStart: Int, lineEnd: Int, columnStart: Int = 0, columnEnd: Int = 0)
 
+abstract class AbstractParseResult
+
+case class TagParseResult(content: List[AbstractParseResult], header: MdHeader, altLabels: List[String]) extends AbstractParseResult
+
+case class StringParseResult(paragraphs: List[MdParagraph]) extends AbstractParseResult
+case class AliasParseResult()
 
 trait ParseConstants {
   val CONTENT_TAG = "tag"

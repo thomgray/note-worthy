@@ -1,11 +1,11 @@
 package com.gray.note.content_things
 
-import com.gray.markdown.MdParagraph
-import com.gray.parse.{ParseConstants, ParseResult}
+import com.gray.markdown.{MdLocation, MdParagraph}
+import com.gray.parse.{AbstractParseResult, ParseConstants, ParseResult}
 
 import scala.io.AnsiColor
 
-abstract class Content extends AnsiColor with ParseConstants{
+abstract class Content(val location: MdLocation) extends ParseConstants{
   private var parent : Option[ContentTag] = None
   private [content_things] def setParent(newParent: Option[ContentTag]) = parent = newParent
   def parentTag: Option[ContentTag] = parent
@@ -34,9 +34,9 @@ abstract class Content extends AnsiColor with ParseConstants{
   *   </li>
   * </ul>
   */
-abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
+abstract class ContentTagLikeThing(location: MdLocation) extends Content(location) {
 
-  def getLabels: List[String] = parseResult.labels.getOrElse(List.empty[String])
+  def getLabels: List[String] = Nil//parseResult.labels.getOrElse(List.empty[String])
 
   def getTitleString = getLabels.headOption.getOrElse("")
 
@@ -53,7 +53,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
     *
     * @return
     */
-  def isParentVisible: Boolean = parseResult.options.contains(PARENT_VISIBLE_FLAG)
+  def isParentVisible: Boolean = false//parseResult.options.contains(PARENT_VISIBLE_FLAG)
 
   /**
     * Flag specifying whether the tag is referable without specifying its inherited label<br/>
@@ -62,7 +62,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
     *
     * @return
     */
-  def isUniversallyReferenced: Boolean = parseResult.options.contains(UNIVERSAL_REFERENCE_FLAG)
+  def isUniversallyReferenced: Boolean = false//parseResult.options.contains(UNIVERSAL_REFERENCE_FLAG)
 
   def isParaphrase: Boolean
 
@@ -76,7 +76,7 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
     *
     * @return
     */
-  def isContentVisible = !parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
+  def isContentVisible = false//parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
 
   def getQueryString : String = {
     if (parentTag.isDefined) s"${parentTag.get.getQueryString} $getTitleString"
@@ -84,26 +84,29 @@ abstract class ContentTagLikeThing(parseResult: ParseResult) extends Content {
   }
 }
 
-class ContentString(str: String, path: String = "") extends Content {
-  private var _format = "txt"
+class ContentString(val paragraphs: List[MdParagraph],
+                    val format: String,
+                    location: MdLocation,
+                    val path: String = "") extends Content(location) {
 
-  private var _mdParagraphs: Option[List[MdParagraph]] = None
 
-  def setParagraphs(paragraphs: List[MdParagraph]) = _mdParagraphs = Some(paragraphs)
-  def paragraphs() = _mdParagraphs
+//  private var _mdParagraphs: Option[List[MdParagraph]] = None
 
-  def setFormat(format: String) = _format = format
+//  def setParagraphs(paragraphs: List[MdParagraph]) = _mdParagraphs = Some(paragraphs)
+//  def paragraphs() = _mdParagraphs
 
-  def format = _format
+//  def setFormat(format: String) = _format = format
 
-  override def getString: String = str
+//  def format = _format
+
+  override def getString: String = paragraphs.map(_.toString).mkString("\n")
 
   override val filePath: String = path
 
 }
 
 object ContentString extends ParseConstants {
-  def apply(string: String, path: String = "") = new ContentTag(ParseResult(string, None, CONTENT_STRING), path)
+//  def apply(string: String, path: String = "") = new ContentTag(ParseResult(string, None, CONTENT_STRING), path)
 }
 
 
