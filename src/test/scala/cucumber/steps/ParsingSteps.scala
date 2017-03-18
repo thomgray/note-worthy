@@ -49,7 +49,7 @@ class ParsingSteps extends BaseSteps with ParseConstants {
 
   When("""^the file is parsed with an mdl parser$""") { () =>
     parser = Some(MdlIterator)
-    parseResults = Some(parser.get.apply(rawString))
+    parseResults = Some(parser.get.apply(rawString, ""))
   }
 
   When("""^we take the (\d+)(st|nd|rd|th) item of the result$""") { (n: Int, arg: String) =>

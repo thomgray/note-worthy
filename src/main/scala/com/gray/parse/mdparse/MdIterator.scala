@@ -83,7 +83,7 @@ object MdIterator extends ContentParser {
     }
   }
 
-  override def apply(string: String, format: String): List[AbstractParseResult] = {
+  override def apply(string: String, format: String = "md"): List[AbstractParseResult] = {
     val document = mdparser.parse(string)
     getMdContentPart(document.paragraphs)
   }

@@ -19,7 +19,7 @@ import com.gray.parse.mdparse.MdIterator
 trait ContentLoader extends ParseConstants {
   private[content_things] def getParser: ContentParser
 
-  def getContent(string: String, path: String = "", parser: ContentParser = getParser, extension: String): List[Content] = {
+  def getContent(string: String, path: String = "", parser: ContentParser = getParser, extension: String = ""): List[Content] = {
     val mdParagraphs = parser(string, extension)
     val asContent = translateResultsToContent(mdParagraphs, path)
     extractContentAliasesFromStrings(asContent)
