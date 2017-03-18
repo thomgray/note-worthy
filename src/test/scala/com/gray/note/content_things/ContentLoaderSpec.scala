@@ -88,8 +88,6 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
 
     val results = markdownLoader.getContent(str)
 
-    println(results.map(_.getClass))
-
     results.length mustBe 3
     results(0) mustBe a[ContentTag]
     results(1) mustBe a[ContentTag]

@@ -103,18 +103,21 @@ object MainController extends ArgKeys {
         resultHandler.apply(result)
         autoCompleter.apply(Some(result))
         printTag(result)
-      case _ =>
+      case _ => println("no result found")
     }
   }
 
-  def getResults(string: String) = currentTag match {
-    case Some(tag) =>
-      val newQuery = tag.getQueryString + string
-      searchEngine.getContentWithQuery(newQuery, Some(tag)) match {
-        case list if list.nonEmpty => list
-        case _ => searchEngine.getContentWithQuery(string)
-      }
-    case None => searchEngine.getContentWithQuery(string)
+  def getResults(string: String) = {
+    println(s">> getting results with query $string")
+    currentTag match {
+      case Some(tag) =>
+        val newQuery = tag.getQueryString + string
+        searchEngine.getContentWithQuery(newQuery, Some(tag)) match {
+          case list if list.nonEmpty => list
+          case _ => searchEngine.getContentWithQuery(string)
+        }
+      case None => searchEngine.getContentWithQuery(string)
+    }
   }
 
   def getMergedResult(string: String) = getResults(string) match {

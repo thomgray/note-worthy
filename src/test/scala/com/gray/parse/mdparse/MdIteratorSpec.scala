@@ -112,4 +112,20 @@ class MdIteratorSpec extends FlatSpec with Matchers with ParseConstants {
     }
   }
 
+  "getAltLabelsFromHeader" should "return the header with nil if no alt labels are stated" in {
+    val header = MdHeader(MdString("header", @@(0,0)), 1, @@(0,0))
+    iterator.getAlLablesFromHeader(header) shouldBe (header, Nil)
+  }
+
+  it should "split an alt-labeled header into a new header with alt labels" in {
+    val header = MdHeader(MdString("header [label;\"label2\"]", @@(0,0)), 1, @@(0,0))
+    val split = iterator.getAlLablesFromHeader(header)
+    split._1.mdString.string shouldBe "header"
+    split._2 shouldBe List("label", "\"label2\"")
+  }
+
+  "headerAltLabelRegex" should "match header with altLabels" in {
+    iterator.headerAltLabelsRegex.findFirstMatchIn("header [altlabel]") shouldBe defined
+  }
+
 }

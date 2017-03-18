@@ -6,6 +6,7 @@ trait ContentParser extends ParseConstants {
   def apply(string: String): List[AbstractParseResult]
 }
 
+
 case class Location(lineStart: Int, lineEnd: Int, columnStart: Int = 0, columnEnd: Int = 0)
 
 abstract class AbstractParseResult

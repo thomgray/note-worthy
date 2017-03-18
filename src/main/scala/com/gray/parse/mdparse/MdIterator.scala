@@ -8,7 +8,8 @@ import com.gray.parse._
 import scala.util.control.Breaks._
 
 object MdIterator extends ContentParser {
-  val aliasRegex = """^\[(.+)\] *<(.*)>$""".r
+  val aliasRegex = """^\s*\[(.+)\]\s*<(.*)>\s*$""".r
+  protected[mdparse] val headerAltLabelsRegex = """^\s*(.+?)\s*\[(.+)\]\s*$""".r
 
   val mdparser = new MdParser {
     override val checks: List[(List[String], Int, Int) => Option[(MdParagraph, Int)]] = defaultChecks ++ List(
@@ -34,7 +35,8 @@ object MdIterator extends ContentParser {
         rangeOfNextHeaderBlock(paragraphs, 0, mark) match {
           case Some((header, start, end)) =>
             val tagContent =getMdContentPart(paragraphs.slice(start+1, end))
-            content = content :+ TagParseResult(tagContent, header, Nil)
+            val (realHeader, labels) = getAlLablesFromHeader(header)
+            content = content :+ TagParseResult(tagContent, realHeader, labels)
             mark = end
           case None =>
             break
@@ -68,7 +70,18 @@ object MdIterator extends ContentParser {
     }
   }
 
-  private val trimmedHeaderRegex = "(#{1,5}) +(.*)".r
+  protected[mdparse] def getAlLablesFromHeader(header: MdHeader) = {
+    val rawString = header.mdString.string
+    headerAltLabelsRegex.findFirstMatchIn(rawString) match {
+      case Some(mtch) =>
+        (
+          MdHeader(MdString(mtch.group(1), header.mdString.location), header.value, header.location),
+          mtch.group(2).split(";").map(_.trim.toLowerCase).toList
+        )
+      case _ =>
+        (header, Nil)
+    }
+  }
 
   override def apply(string: String): List[AbstractParseResult] = {
     val document = mdparser.parse(string)

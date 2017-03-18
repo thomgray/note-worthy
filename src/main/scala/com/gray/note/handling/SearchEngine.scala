@@ -41,7 +41,6 @@ trait SearchEngine {
         allTags.filter(tagMatchesSearchString(_, searchString))
       case Some(tag) => tag.getAllNestedTagLikeThings.filter(tagMatchesSearchString(_, searchString))
     }
-
     matches flatMap {
       case cta: ContentTagAlias =>
         getContentWithQuery(cta.getAliasedQuery, None, Some(allTags))
