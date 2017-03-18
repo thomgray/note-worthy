@@ -186,7 +186,7 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
 
     val pars = List(
       s1,
-      MdAlias("label;label2","alias", nowhere),
+      MdAlias("alias","label;label2", nowhere),
       s2
     )
 

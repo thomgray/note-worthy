@@ -4,7 +4,7 @@ import com.gray.markdown.MdLocation
 import com.gray.parse.ParseConstants
 
 class ContentTagAlias( val alias: String,
-                       val labels: Seq[String],
+                       override val labels: List[String],
                        override val location: MdLocation,
                        override val path: String = "") extends ContentTagLikeThing{
 
@@ -29,12 +29,12 @@ class ContentTagAlias( val alias: String,
 
 object ContentTagAlias extends ParseConstants {
 
-  def apply(alias: String, labels: Seq[String], location: MdLocation, path: String) = new ContentTagAlias(
+  def apply(alias: String, labels: List[String], location: MdLocation, path: String) = new ContentTagAlias(
     alias, labels, location, path
   )
 
   def apply(mdAlias: MdAlias, path: String) = new ContentTagAlias(
-    mdAlias.aliases, mdAlias.label.split(";").map(_.trim.toLowerCase), mdAlias.location, path
+    mdAlias.aliasLabels, mdAlias.aliasedLabel.split(";").map(_.trim.toLowerCase).toList, mdAlias.location, path
   )
 
   def unapply(arg: ContentTagAlias): Option[(String, Seq[String], MdLocation, String)] =

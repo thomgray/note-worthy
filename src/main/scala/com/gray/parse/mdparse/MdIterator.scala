@@ -13,7 +13,7 @@ object MdIterator extends ContentParser {
   val mdparser = new MdParser {
     override val checks: List[(List[String], Int, Int) => Option[(MdParagraph, Int)]] = defaultChecks ++ List(
       (lines: List[String], marker: Int, offset: Int) => aliasRegex.findFirstMatchIn(lines(marker)) map { mtch =>
-        (MdAlias(mtch.group(1), mtch.group(2), @@(0,0)), marker+1)
+        (MdAlias(mtch.group(2), mtch.group(1), @@(0,0)), marker+1)
       }
     )
   }

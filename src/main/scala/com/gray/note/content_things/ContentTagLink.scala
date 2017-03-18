@@ -8,4 +8,5 @@ class ContentTagLink( override val path: String = "") extends ContentTagLikeThin
   override def getString: String = ???
 
   override val location: MdLocation = ???
+  override val labels: List[String] = ???
 }

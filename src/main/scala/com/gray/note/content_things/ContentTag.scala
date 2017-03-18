@@ -21,7 +21,7 @@ class ContentTag(val contents: List[Content],
 
   contents.foreach(_.setParent(Some(this)))
 
-  override def getLabels: List[String] = header.mdString.string.trim +: altLabels
+  override val labels: List[String] = header.mdString.string.trim +: altLabels
 
   private var _linkName: Option[String] = None
 
@@ -44,13 +44,6 @@ class ContentTag(val contents: List[Content],
     val clazz = implicitly[ClassTag[T]].runtimeClass
     contents.filter(clazz.isInstance(_)).asInstanceOf[List[T]]
   }
-
-//  def getContents = _contents
-
-//  def getMdParagraphs: List[MdParagraph] = contents.flatMap {
-//    case string: ContentString => string.paragraphs
-//    case tag: ContentTag => tag.getMdParagraphs
-//  }
 
   override def isParaphrase: Boolean = false
 

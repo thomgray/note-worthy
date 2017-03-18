@@ -60,21 +60,24 @@ class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with Par
 
 
   it should "find aliased content" in {
-    val alias = new ContentTagAlias("alias", List("taglabel"), @@(0,0), "")
+    val alias = new ContentTagAlias("aliasedtag", List("aliaslabel"), @@(0,0), "")
 
     val string = ContentString(List(MdString("some tag", @@(0,0))), "", "")
-    val someTag = new ContentTag(List(string), MdHeader(MdString("taglabel", @@(0,0)), 1, @@(0,0)), Nil, "")
+    val someTag = new ContentTag(List(string), MdHeader(MdString("aliasedtag", @@(0,0)), 1, @@(0,0)), Nil, "")
+
+
+    alias.getAliasedQuery shouldBe "aliasedtag"
 
     when(mockIO.getDirectories) thenReturn List("foo")
     when(mockLoader.getContentFromDirectory(anyString())) thenReturn List(alias, someTag)
 
-    engine.getContentWithQuery("alias") shouldBe List(someTag)
+    engine.getContentWithQuery("aliaslabel") shouldBe List(someTag)
   }
 
   it should "find aliased content nested within a tag" in {
     val alias = ContentTagAlias("aliased content", "alias", @@(0,0), "")
     val aliasedTag = ContentTag(ContentString(List(stringToMdString("hippo")), "", ""), "aliased content", Nil, "")
-    val tagContainingAlias = ContentTag(ContentString(List(stringToMdString("anything")), "",""), "upper", Nil, "")
+    val tagContainingAlias = ContentTag(List(alias, aliasedTag), "upper", Nil, "")
 
 
     when (mockIO.getDirectories) thenReturn List("foo")
@@ -96,14 +99,14 @@ class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with Par
 
   it should "match an alias with a tag parent" in {
     val alias = ContentTagAlias("alias", "label", @@(0,0), "")
-    val contentTag = ContentTag(List("goo"), "content label", Nil, "")
+    val contentTag = ContentTag(List(alias), "content label", Nil, "")
 
     engine.tagMatchesSearchString(alias, "content label label") shouldBe true
   }
 
   it should "match a nested content tag" in {
     val tag1 = ContentTag(List("foo"), "tag1",Nil,"")
-    val tag2 = ContentTag(List("foo"), "tag2",Nil,"")
+    val tag2 = ContentTag(List("foo", tag1), "tag2",Nil,"")
 
     engine.tagMatchesSearchString(tag1, "tag2 tag1") shouldBe true
   }
@@ -122,7 +125,7 @@ class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with Par
   it should "get nested content including aliases" in {
     val alias = ContentTagAlias("aliased", "alias", @@(0,0), "")
     val aliasedTag = ContentTag(List("hippo"), "hippo", Nil, "")
-    val anotherTag = ContentTag(List("giraffe"), "giraffe", Nil, "")
+    val anotherTag = ContentTag(List("giraffe", alias, aliasedTag), "giraffe", Nil, "")
 
     when (mockIO.getDirectories) thenReturn List("foo")
     when(mockLoader.getContentFromDirectory("foo")) thenReturn List(anotherTag)

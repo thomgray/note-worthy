@@ -41,6 +41,7 @@ trait SearchEngine {
         allTags.filter(tagMatchesSearchString(_, searchString))
       case Some(tag) => tag.getAllNestedTagLikeThings.filter(tagMatchesSearchString(_, searchString))
     }
+
     matches flatMap {
       case cta: ContentTagAlias =>
         getContentWithQuery(cta.getAliasedQuery, None, Some(allTags))
@@ -51,7 +52,7 @@ trait SearchEngine {
 
   def tagMatchesSearchString(tag: ContentTagLikeThing, searchString: String): Boolean = {
     def recTagMatchesString(tag: ContentTagLikeThing, searchString: String): Boolean = {
-      val labels = tag.getLabels
+      val labels = tag.labels
       val remainders = checkLabelsWithString(labels, searchString)
       if (remainders.isEmpty) false
       else if (remainders.contains("") && (tag.isUniversallyReferenced || tag.parentTag.isEmpty)) {

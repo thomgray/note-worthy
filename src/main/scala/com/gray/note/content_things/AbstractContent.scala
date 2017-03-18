@@ -39,9 +39,9 @@ abstract class Content extends ParseConstants{
   */
 abstract class ContentTagLikeThing extends Content {
 
-  def getLabels: List[String] = Nil//parseResult.labels.getOrElse(List.empty[String])
+  val labels: List[String]
 
-  def getTitleString = getLabels.headOption.getOrElse("")
+  def getTitleString = labels.headOption.getOrElse("")
 
   /**
     * Flag specifying if the tag is visible within the BODY of the parent tag<br/>

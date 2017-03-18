@@ -50,7 +50,7 @@ class ContentHandlerSteps extends BaseSteps {
 
   Then("""^the 1st search result is the git config link tag$""") { () =>
     val result = searchResult.get.head
-    result.getLabels must contain ("link")
+    result.labels must contain ("link")
   }
 
 }

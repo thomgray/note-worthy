@@ -17,7 +17,7 @@ class ContentTagSpec extends FlatSpec with MustMatchers with ParseConstants{
         ""
     )
     tag.isParaphrase mustBe false
-    tag.getLabels mustBe List("hellotag")
+    tag.labels mustBe List("hellotag")
   }
 
 

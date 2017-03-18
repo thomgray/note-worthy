@@ -78,8 +78,8 @@ trait ContentLoader extends ParseConstants {
       case ContentString(pars, format, location, path) =>
         val split = separateMdParagrapsIntoAliasesAndTheRest(pars).filter(_.nonEmpty)
         split.map{
-          case List(MdAlias(label, alias, loc)) =>
-            val labels = label.split(";").map(_.trim.toLowerCase)
+          case List(MdAlias(alias, label, loc)) =>
+            val labels = label.split(";").map(_.trim.toLowerCase).toList
             new ContentTagAlias(alias, labels, loc, path)
           case paragraphs =>
             new ContentString(paragraphs, format, path)
