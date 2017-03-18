@@ -10,7 +10,7 @@ trait SearchEngine {
   def getAllContentTags = for {
     baseTag <- getBaseTags
     tag <- baseTag.getAllNestedTags
-    _ = if (tag.filePath == "") println(s"Tag without a file Path: ${tag.getTitleString}")
+    _ = if (tag.path == "") println(s"Tag without a file Path: ${tag.getTitleString}")
   } yield tag
 
   def getAllContentTagLikeThings = for {

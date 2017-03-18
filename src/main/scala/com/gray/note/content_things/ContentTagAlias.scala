@@ -1,12 +1,12 @@
 package com.gray.note.content_things
 
 import com.gray.markdown.MdLocation
-import com.gray.parse.{AbstractParseResult, ParseConstants, ParseResult}
+import com.gray.parse.ParseConstants
 
 class ContentTagAlias( val alias: String,
                        val labels: Seq[String],
-                       location: MdLocation,
-                       val path: String = "") extends ContentTagLikeThing(location){
+                       override val location: MdLocation,
+                       override val path: String = "") extends ContentTagLikeThing{
 
   override def isParaphrase: Boolean = true
 
@@ -17,9 +17,26 @@ class ContentTagAlias( val alias: String,
     case None => getString
   }
 
-  override val filePath: String = path
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case ContentTagAlias(otherAlias, otherLabels, otherLocation, otherPath) =>
+      alias.equals(otherAlias) &&
+      labels.equals(otherLabels) &&
+      location.equals(otherLocation) &&
+      path.equals(otherPath)
+    case _ => false
+  }
 }
 
 object ContentTagAlias extends ParseConstants {
-//  def apply(string: String, labels: List[String], path: String = "") = new ContentTagAlias(ParseResult(string, Some(labels), CONTENT_ALIAS, ""), path)
+
+  def apply(alias: String, labels: Seq[String], location: MdLocation, path: String) = new ContentTagAlias(
+    alias, labels, location, path
+  )
+
+  def apply(mdAlias: MdAlias, path: String) = new ContentTagAlias(
+    mdAlias.aliases, mdAlias.label.split(";").map(_.trim.toLowerCase), mdAlias.location, path
+  )
+
+  def unapply(arg: ContentTagAlias): Option[(String, Seq[String], MdLocation, String)] =
+    Some(arg.alias, arg.labels, arg.location, arg.path)
 }

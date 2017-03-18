@@ -2,7 +2,7 @@ package com.gray.note.content_things
 
 import java.io.File
 
-import com.gray.markdown.@@
+import com.gray.markdown.{@@, MdParagraph}
 import com.gray.parse._
 import com.gray.parse.mdlparse.MdlIterator
 import com.gray.parse.mdparse.MdIterator
@@ -21,16 +21,16 @@ trait ContentLoader extends ParseConstants {
 
   def getContent(string: String, path: String = "", parser: ContentParser = getParser): List[Content] = {
     val mdParagraphs = parser(string)
-    translateResultsToContent(mdParagraphs, path)
+    val asContent = translateResultsToContent(mdParagraphs, path)
+    extractContentAliasesFromStrings(asContent)
   }
 
-  def translateResultsToContent(results: List[AbstractParseResult], path: String): List[Content] = {
+  protected def translateResultsToContent(results: List[AbstractParseResult], path: String): List[Content] = {
     results map {
       case StringParseResult(pars) =>
         new ContentString(
           pars,
           "",
-          @@(pars.head.location.startLine, pars.last.location.endLine),
           path
         )
       case TagParseResult(pars, header, altLabels) =>
@@ -39,7 +39,6 @@ trait ContentLoader extends ParseConstants {
           contents,
           header,
           altLabels,
-          @@(header.location.startLine, contents.lastOption.map(_.location).getOrElse(header.location).endLine),
           path
         )
     }
@@ -70,9 +69,40 @@ trait ContentLoader extends ParseConstants {
         list.flatMap(_.contents),
         list.head.header,
         list.flatMap(_.altLabels),
-        list.head.location,
         list.head.path
       )
+    }
+  }
+
+  def extractContentAliasesFromStrings(list: List[Content]): List[Content] = {
+    list flatMap{
+      case ContentTag(content, header, labels, location, path) =>
+        val newTagContents = extractContentAliasesFromStrings(content)
+        val tag = new ContentTag(newTagContents, header, labels, path)
+        List(tag)
+      case ContentString(pars, format, location, path) =>
+        val split = separateMdParagrapsIntoAliasesAndTheRest(pars).filter(_.nonEmpty)
+        split.map{
+          case List(MdAlias(label, alias, loc)) =>
+            val labels = label.split(";").map(_.trim.toLowerCase)
+            new ContentTagAlias(alias, labels, loc, path)
+          case paragraphs =>
+            new ContentString(paragraphs, format, path)
+        }
+    }
+  }
+
+  private def separateMdParagrapsIntoAliasesAndTheRest(pars: List[MdParagraph], soFar: List[List[MdParagraph]] = Nil): List[List[MdParagraph]] = {
+    pars.indexWhere(_.isInstanceOf[MdAlias]) match {
+      case -1 => soFar :+ pars
+      case other =>
+        val untilThat = pars.take(other) match {
+          case Nil => soFar
+          case list => soFar :+ list
+        }
+        val that = List(pars(other))
+        val remainder = pars.drop(other+1)
+        separateMdParagrapsIntoAliasesAndTheRest(remainder, untilThat :+ that)
     }
   }
 

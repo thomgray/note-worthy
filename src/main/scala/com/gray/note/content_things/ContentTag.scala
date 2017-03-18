@@ -1,6 +1,6 @@
 package com.gray.note.content_things
 
-import com.gray.markdown.{MdHeader, MdLocation, MdParagraph}
+import com.gray.markdown.{@@, MdHeader, MdLocation, MdParagraph}
 import com.gray.parse.{AbstractParseResult, Location, ParseConstants, ParseResult}
 import com.gray.note.util.Formatting
 
@@ -9,14 +9,17 @@ import scala.reflect.ClassTag
 class ContentTag(val contents: List[Content],
                  val header: MdHeader,
                  val altLabels: List[String],
-                 location: MdLocation,
-                 val path: String = "") extends ContentTagLikeThing(location) with Formatting {
+                 override val path: String = "") extends ContentTagLikeThing with Formatting {
+
+  override val location = {
+    val (endLn, endCol) = contents.lastOption match {
+      case Some(last) => (last.location.endLine, last.location.endColumn)
+      case None => (header.location.endLine, header.location.endColumn)
+    }
+    MdLocation(header.location.startLine, endLn, header.location.startColumn, endCol)
+  }
 
   contents.foreach(_.setParent(Some(this)))
-//  private var _contents: List[Content] = List.empty
-
-//  val location = result.location
-//  override val filePath = path
 
   override def getLabels: List[String] = header.mdString.string.trim +: altLabels
 
@@ -27,9 +30,6 @@ class ContentTag(val contents: List[Content],
   def linkName = _linkName
 
   def isLinked = _linkName.isDefined
-
-
-//  private[content_things] def setContents(contents: List[Content]) = _contents = contents
 
   def getTagContents = contents collect {
     case ct: ContentTag => ct
@@ -82,15 +82,25 @@ class ContentTag(val contents: List[Content],
     }).mkString("\n\n")
   }
 
-  override val filePath: String = path
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case ContentTag(otherContent, otherHeader, otherList, otherLocation, otherPath) =>
+      contents.equals(otherContent) &&
+      header.equals(otherHeader) &&
+      altLabels.equals(otherList) &&
+      location.equals(otherLocation) &&
+      path.equals(otherPath)
+    case _ => false
+  }
 }
 
 object ContentTag extends ParseConstants {
-//  def apply(content: String, labels: List[String], location: Location, innerContent: List[Content] = Nil, options: String = "", path: String = "") = {
-//    val tag = new ContentTag(ParseResult(content, Some(labels), CONTENT_TAG, options, location), path)
-//    tag.setContents(innerContent)
-//    innerContent.foreach(_.setParent(Some(tag)))
-//    tag
-//  }
+
+  def apply(contents: List[Content], header: MdHeader, altLabels: List[String], path: String) = new ContentTag(
+    contents, header, altLabels, path
+  )
+
+  def unapply(arg: ContentTag): Option[(List[Content], MdHeader, List[String], MdLocation, String)] = {
+    Some(arg.contents, arg.header, arg.altLabels, arg.location, arg.path)
+  }
 
 }

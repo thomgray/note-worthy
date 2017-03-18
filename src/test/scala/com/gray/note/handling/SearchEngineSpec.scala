@@ -43,10 +43,9 @@ class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with Par
     )
 
     val someTag = new ContentTag(
-      List(new ContentString(List(MdString("", @@(0,0))), "", @@(0,0))),
+      List(new ContentString(List(MdString("", @@(0,0))), "")),
       MdHeader(MdString("tagLabel", location), 1, location),
-      Nil,
-      location
+      Nil
     )
 
     when (mockIO.getDirectories) thenReturn List("foo")

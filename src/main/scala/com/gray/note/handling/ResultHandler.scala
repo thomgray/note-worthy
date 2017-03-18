@@ -59,8 +59,8 @@ trait ResultHandler {
 
   def openTagInAtom(tag: ContentTag) = {
     val location = s"${tag.location.startLine+1}:${tag.location.startColumn+1}"
-    println(s"Opening ${tag.filePath}:$location")
-    s"atom ${tag.filePath}:$location".!
+    println(s"Opening ${tag.path}:$location")
+    s"atom ${tag.path}:$location".!
   }
 
   def getNextSiblingTag(contentTag: ContentTag) = contentTag.parentTag match {

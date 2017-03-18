@@ -7,13 +7,14 @@ import org.scalatest.{FlatSpec, MustMatchers}
 class ContentTagSpec extends FlatSpec with MustMatchers with ParseConstants{
 
   val loader = MdlLoader
-  "ContentTag" should "initialise properly" in {
+  val string1 = MdPlainString("string1", @@(0,0))
+  it should "initialise properly" in {
     //contents not set - that is done by the content loader
     val tag = new ContentTag(
-        List(new ContentString(Nil, "", @@(0,0))),
+        List(new ContentString(List(string1), "")),
         MdHeader(MdString("hellotag", @@(0,1)), 1, @@(0,1)),
         Nil,
-        @@(0,2)
+        ""
     )
     tag.isParaphrase mustBe false
     tag.getLabels mustBe List("hellotag")

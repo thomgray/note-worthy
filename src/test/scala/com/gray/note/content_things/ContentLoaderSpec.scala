@@ -1,11 +1,12 @@
 package com.gray.note.content_things
 
-import com.gray.markdown.MdLocation
+import com.gray.markdown.{@@, MdHeader, MdLocation, MdString}
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ContentLoaderSpec extends FlatSpec with MustMatchers {
 
   val mdlLoader = MdlLoader
+  val nowhere = @@(0,0)
 
   "getContent with Mdl loader" should "return a single tag" in {
     val str =
@@ -53,7 +54,7 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     contents(2) mustBe a[ContentString]
   }
 
-  it should "recurse the offset for nested tags" in {
+  ignore should "recurse the offset for nested tags" in { // move this to the parser, as the parser does this now
     val str =
       """[[[tag
         |content
@@ -95,7 +96,7 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     results(2) mustBe a[ContentTag]
   }
 
-  "getContent" should "maintain the offset for nested content" in {
+  ignore should "maintain the offset for nested content" in { // move to parser spec
 
     val str =
       """# main bit
@@ -146,6 +147,7 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
         |some content""".stripMargin
 
     val results = markdownLoader.getContent(str)
+    results.length mustBe 2
     val res1 = results(0)
     val res2 = results(1)
 
@@ -162,6 +164,37 @@ class ContentLoaderSpec extends FlatSpec with MustMatchers {
     val innerAlias = innerContent(0).asInstanceOf[ContentTagAlias]
     innerAlias.getAliasedQuery mustBe "header 1 the header"
     innerContent(1) mustBe a [ContentString]
+  }
+
+  "extractContentAliasesFromStrings" should "not change anything if there are no aliases" in {
+    val cs1 = new ContentString(List(MdString("hello1", @@(0,1))), "", "")
+    val cs2 = new ContentString(List(MdString("hello2", @@(1,2))), "", "")
+    val cs3 = new ContentString(List(MdString("hello3", @@(2,3))), "", "")
+
+    val tag = new ContentTag(List(cs1, cs2), MdHeader(MdString("tag", @@(0,0)),1, @@(0,0)), Nil,"")
+
+    val contents = List(
+      tag, cs3
+    )
+
+    markdownLoader.extractContentAliasesFromStrings(contents) mustBe contents
+  }
+
+  it should "split a string with aliases into a list of strings and aliases" in {
+    val s1 = MdPlainString("hello", nowhere)
+    val s2 = MdPlainString("hello2", nowhere)
+
+    val pars = List(
+      s1,
+      MdAlias("label;label2","alias", nowhere),
+      s2
+    )
+
+    markdownLoader.extractContentAliasesFromStrings(List(new ContentString(pars,""))) mustBe List(
+      ContentString(List(s1), ""),
+      ContentTagAlias("alias", List("label", "label2"), nowhere, ""),
+      ContentString(List(s2), "")
+    )
   }
 
 }

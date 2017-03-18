@@ -13,7 +13,7 @@ class ContentTagAliasSpec extends FlatSpec with Matchers {
 
   it should "inherit the query string of a parent tag" in {
     val alias = new ContentTagAlias("query", List("foo"), @@(0,0))
-    val parent = new ContentTag(List(alias), MdHeader(MdString("tag", @@(0,0)), 1, @@(0,0)), Nil, @@(0,0), "")
+    val parent = new ContentTag(List(alias), MdHeader(MdString("tag", @@(0,0)), 1, @@(0,0)), Nil, "")
 
     alias.getAliasedQuery shouldBe "tag query"
   }

@@ -5,9 +5,16 @@ import com.gray.parse.{AbstractParseResult, ParseConstants, ParseResult}
 
 import scala.io.AnsiColor
 
-abstract class Content(val location: MdLocation) extends ParseConstants{
+abstract class Content extends ParseConstants{
+
+  val location: MdLocation
+
+  val path: String
+
   private var parent : Option[ContentTag] = None
+
   private [content_things] def setParent(newParent: Option[ContentTag]) = parent = newParent
+
   def parentTag: Option[ContentTag] = parent
 
   def getAllDescendantContent: List[Content] = List(this)
@@ -15,8 +22,6 @@ abstract class Content(val location: MdLocation) extends ParseConstants{
   def getString: String
 
   override def toString: String = getString
-
-  val filePath: String
 }
 
 /**
@@ -34,7 +39,7 @@ abstract class Content(val location: MdLocation) extends ParseConstants{
   *   </li>
   * </ul>
   */
-abstract class ContentTagLikeThing(location: MdLocation) extends Content(location) {
+abstract class ContentTagLikeThing extends Content {
 
   def getLabels: List[String] = Nil//parseResult.labels.getOrElse(List.empty[String])
 
@@ -84,30 +89,9 @@ abstract class ContentTagLikeThing(location: MdLocation) extends Content(locatio
   }
 }
 
-class ContentString(val paragraphs: List[MdParagraph],
-                    val format: String,
-                    location: MdLocation,
-                    val path: String = "") extends Content(location) {
 
 
-//  private var _mdParagraphs: Option[List[MdParagraph]] = None
 
-//  def setParagraphs(paragraphs: List[MdParagraph]) = _mdParagraphs = Some(paragraphs)
-//  def paragraphs() = _mdParagraphs
-
-//  def setFormat(format: String) = _format = format
-
-//  def format = _format
-
-  override def getString: String = paragraphs.map(_.toString).mkString("\n")
-
-  override val filePath: String = path
-
-}
-
-object ContentString extends ParseConstants {
-//  def apply(string: String, path: String = "") = new ContentTag(ParseResult(string, None, CONTENT_STRING), path)
-}
 
 
 
