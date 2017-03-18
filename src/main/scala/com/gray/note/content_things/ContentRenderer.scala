@@ -16,37 +16,16 @@ trait ContentRenderer {
       case _ => false
     } flatMap {
       case tag: ContentTag =>
-        MdHeader(MdString(tag.getTitleString, @@(0,0)), 5, @@(0,0)) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
+        tag.header :: tag.get[ContentString].flatMap(_.paragraphs)
       case string: ContentString =>
-        getMdContentsFromContentString(string)
+        string.paragraphs
     }
     renderParagraphs(paragraphs, width)
-  }
-
-  private def getMdContentsFromContentString(string: ContentString) = {
-    string.format match {
-      case "txt" => List(MdPlainString(string.getString, @@(0,0)))
-      case "md" =>
-        MdParser.parse(string.getString).paragraphs
-      case other => throw new PendingException(s"awaiting for tag: $string")
-    }
   }
 
   def renderParagraphs(paragraphs: List[MdParagraph], width: Int) = {
     val doc = MdDocument(paragraphs)
     MdRenderer.render(doc, width).toString()
-//    var linkNumber = 1
-//    var checkboxNumber = 1
-//    paragraphs.foreach {
-//      case MdPlainString(string) => mdFormatter.formatString(string, width)
-//      case string: MdString =>
-//        string.links.foreach { s => s._1.index = linkNumber; linkNumber += 1 }
-//      case list: MdCheckList =>
-//        list.items.foreach { item => item.index = checkboxNumber; checkboxNumber += 1 }
-//      case _ =>
-//    }
-//
-//    paragraphs.map(mdFormatter.renderParagraph(_, width)).mkString("\n\n")
   }
 
 //  def getLinksFromParagraph(paragraph: MdParagraph) = paragraph match {

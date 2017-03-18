@@ -56,7 +56,7 @@ abstract class ContentTagLikeThing extends Content {
     *
     * @return
     */
-  def isParentVisible: Boolean = false//parseResult.options.contains(PARENT_VISIBLE_FLAG)
+  def isParentVisible: Boolean = false //parseResult.options.contains(PARENT_VISIBLE_FLAG)
 
   /**
     * Flag specifying whether the tag is referable without specifying its inherited label<br/>
@@ -65,7 +65,7 @@ abstract class ContentTagLikeThing extends Content {
     *
     * @return
     */
-  def isUniversallyReferenced: Boolean = false//parseResult.options.contains(UNIVERSAL_REFERENCE_FLAG)
+  def isUniversallyReferenced: Boolean = false //parseResult.options.contains(UNIVERSAL_REFERENCE_FLAG)
 
   def isParaphrase: Boolean
 
@@ -79,7 +79,7 @@ abstract class ContentTagLikeThing extends Content {
     *
     * @return
     */
-  def isContentVisible = false//parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
+  def isContentVisible = true //parseResult.options.contains(CONTENT_INVISIBLE_FLAG)
 
   def getQueryString : String = {
     if (parentTag.isDefined) s"${parentTag.get.getQueryString} $getTitleString"

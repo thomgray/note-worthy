@@ -103,12 +103,11 @@ object MainController extends ArgKeys {
         resultHandler.apply(result)
         autoCompleter.apply(Some(result))
         printTag(result)
-      case _ => println("no result found")
+      case _ =>
     }
   }
 
   def getResults(string: String) = {
-    println(s">> getting results with query $string")
     currentTag match {
       case Some(tag) =>
         val newQuery = tag.getQueryString + string
