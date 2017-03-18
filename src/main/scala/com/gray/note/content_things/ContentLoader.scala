@@ -2,7 +2,7 @@ package com.gray.note.content_things
 
 import java.io.File
 
-import com.gray.markdown.{@@, MdParagraph}
+import com.gray.markdown.MdParagraph
 import com.gray.parse._
 import com.gray.parse.mdlparse.MdlIterator
 import com.gray.parse.mdparse.MdIterator
@@ -60,11 +60,6 @@ trait ContentLoader extends ParseConstants {
   def mergeContentTags(list: List[ContentTag]) = {
     if (list.length==1) list.head
     else{
-      val dummyResult = ParseResult("",
-        Some(List(list.head.getTitleString)),
-        CONTENT_TAG,
-        ""
-      )
       new ContentTag(
         list.flatMap(_.contents),
         list.head.header,

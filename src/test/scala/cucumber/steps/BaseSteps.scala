@@ -1,6 +1,6 @@
 package cucumber.steps
 
-import com.gray.parse.{AbstractParseResult, ParseResult}
+import com.gray.parse.AbstractParseResult
 import cucumber.api.scala.{EN, ScalaDsl}
 import org.scalatest.{FlatSpec, MustMatchers}
 

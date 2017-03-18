@@ -1,24 +1,27 @@
 package com.gray.note.handling
 
 import com.gray.markdown.{@@, MdHeader, MdLocation, MdString}
-import com.gray.note.content_things.ContentLoader
+import com.gray.note.content_things.{ContentLoader, _}
 import com.gray.note.util.ResourceIO
-import org.scalatest.mockito.MockitoSugar
-import org.mockito.Mockito._
+import com.gray.parse.{Location, ParseConstants}
 import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-import com.gray.note.content_things._
-import com.gray.parse.mdparse.MdIterator
-import com.gray.parse.{Location, ParseConstants, ParseResult}
 
 import scala.language.implicitConversions
-
 
 class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with ParseConstants with BeforeAndAfter {
 
   implicit def thingToList[T](thing: T): List[T] = List(thing)
   implicit def thingToOpt[T](thing: T): Option[T] = Some(thing)
   implicit def thingToOptList[T](thing: T): Option[List[T]] = Some(List(thing))
+
+  implicit def stringToHeader(string: String): MdHeader = MdHeader(MdString(string, @@(0,0)), 1, @@(0,0))
+  implicit def stringToMdString(string: String): MdString = MdString(string, @@(0,0))
+  implicit def stringToContentString(string: String): ContentString = new ContentString(
+    List(stringToMdString(string)), "md", ""
+  )
 
   val mockIO = mock[ResourceIO]
   val mockLoader = mock[ContentLoader]
@@ -54,74 +57,76 @@ class SearchEngineSpec extends FlatSpec with Matchers with MockitoSugar with Par
     engine.getContentWithQuery("taglabel") shouldBe List(someTag)
   }
 
-//
-//
-//  it should "find aliased content" in {
-//    val alias = new ContentTagAlias(ParseResult("taglabel", "alias", CONTENT_ALIAS, ""))
-//    val someTag = new ContentTag(ParseResult("some tag", "taglabel", CONTENT_TAG, ""))
-//
-//    when (mockIO.getDirectories) thenReturn List("foo")
-//    when(mockLoader.getContentFromDirectory(anyString())) thenReturn List(alias, someTag)
-//
-//    engine.getContentWithQuery("alias") shouldBe List(someTag)
-//  }
-//
-//  it should "find aliased content nested within a tag" in {
-//    val alias = ContentTagAlias("aliased content", "alias")
-//    val aliasedTag = ContentTag("hippo", "aliased content", Location(0,0))
-//    val tagContainingAlias = ContentTag("anything", "upper", Location(0,0), List(alias, aliasedTag))
-//
-//
-//    when (mockIO.getDirectories) thenReturn List("foo")
-//    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(tagContainingAlias)
-//
-//    val query = "upper alias"
-//    val result = engine.getContentWithQuery(query)
-//
-//    verify(mockLoader, times(1)).getContentFromDirectory("foo")
-//
-//    result shouldBe List(aliasedTag)
-//  }
-//
-//  "tagMatcherSearchString" should "match an alias with a search string" in {
-//    val alias = ContentTagAlias("alias", "label")
-//
-//    engine.tagMatchesSearchString(alias, "label") shouldBe true
-//  }
-//
-//  it should "match an alias with a tag parent" in {
-//    val alias = ContentTagAlias("alias", "label")
-//    val contentTag = ContentTag("goo", "content label", location, alias)
-//
-//    engine.tagMatchesSearchString(alias, "content label label") shouldBe true
-//  }
-//
-//  it should "match a nested content tag" in {
-//    val tag1 = ContentTag("foo", "tag1",location)
-//    val tag2 = ContentTag("foo", "tag2", location, List(tag1))
-//
-//    engine.tagMatchesSearchString(tag1, "tag2 tag1") shouldBe true
-//  }
-//
-//  "getAllContentTagLikeThings" should "get content tags and aliases" in {
-//    val alias = ContentTagAlias("aliased", "alias")
-//    val aliasedTag = ContentTag("hippo", "hippo", Location(0,0))
-//    val anotherTag = ContentTag("giraffe", "giraffe", Location(0,0))
-//
-//    when (mockIO.getDirectories) thenReturn List("foo")
-//    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(alias, anotherTag, aliasedTag)
-//
-//    engine.getAllContentTagLikeThings shouldBe List(alias, anotherTag, aliasedTag)
-//  }
-//
-//  it should "get nested content including aliases" in {
-//    val alias = ContentTagAlias("aliased", "alias")
-//    val aliasedTag = ContentTag("hippo", "hippo", Location(0,0))
-//    val anotherTag = ContentTag("giraffe", "giraffe", Location(0,0), List(alias, aliasedTag))
-//
-//    when (mockIO.getDirectories) thenReturn List("foo")
-//    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(anotherTag)
-//
-//    engine.getAllContentTagLikeThings.toSet shouldBe List(alias, anotherTag, aliasedTag).toSet
-//  }
+
+
+  it should "find aliased content" in {
+    val alias = new ContentTagAlias("alias", List("taglabel"), @@(0,0), "")
+
+    val string = ContentString(List(MdString("some tag", @@(0,0))), "", "")
+    val someTag = new ContentTag(List(string), MdHeader(MdString("taglabel", @@(0,0)), 1, @@(0,0)), Nil, "")
+
+    when(mockIO.getDirectories) thenReturn List("foo")
+    when(mockLoader.getContentFromDirectory(anyString())) thenReturn List(alias, someTag)
+
+    engine.getContentWithQuery("alias") shouldBe List(someTag)
+  }
+
+  it should "find aliased content nested within a tag" in {
+    val alias = ContentTagAlias("aliased content", "alias", @@(0,0), "")
+    val aliasedTag = ContentTag(ContentString(List(stringToMdString("hippo")), "", ""), "aliased content", Nil, "")
+    val tagContainingAlias = ContentTag(ContentString(List(stringToMdString("anything")), "",""), "upper", Nil, "")
+
+
+    when (mockIO.getDirectories) thenReturn List("foo")
+    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(tagContainingAlias)
+
+    val query = "upper alias"
+    val result = engine.getContentWithQuery(query)
+
+    verify(mockLoader, times(1)).getContentFromDirectory("foo")
+
+    result shouldBe List(aliasedTag)
+  }
+
+  "tagMatchesSearchString" should "match an alias with a search string" in {
+    val alias = ContentTagAlias("alias", List("label"), @@(0,0), "")
+
+    engine.tagMatchesSearchString(alias, "label") shouldBe true
+  }
+
+  it should "match an alias with a tag parent" in {
+    val alias = ContentTagAlias("alias", "label", @@(0,0), "")
+    val contentTag = ContentTag(List("goo"), "content label", Nil, "")
+
+    engine.tagMatchesSearchString(alias, "content label label") shouldBe true
+  }
+
+  it should "match a nested content tag" in {
+    val tag1 = ContentTag(List("foo"), "tag1",Nil,"")
+    val tag2 = ContentTag(List("foo"), "tag2",Nil,"")
+
+    engine.tagMatchesSearchString(tag1, "tag2 tag1") shouldBe true
+  }
+
+  "getAllContentTagLikeThings" should "get content tags and aliases" in {
+    val alias = ContentTagAlias("aliased", "alias", @@(0,0), "")
+    val aliasedTag = ContentTag(List("hippo"), "hippo", Nil, "")
+    val anotherTag = ContentTag(List("giraffe"), "giraffe", Nil, "")
+
+    when (mockIO.getDirectories) thenReturn List("foo")
+    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(alias, anotherTag, aliasedTag)
+
+    engine.getAllContentTagLikeThings shouldBe List(alias, anotherTag, aliasedTag)
+  }
+
+  it should "get nested content including aliases" in {
+    val alias = ContentTagAlias("aliased", "alias", @@(0,0), "")
+    val aliasedTag = ContentTag(List("hippo"), "hippo", Nil, "")
+    val anotherTag = ContentTag(List("giraffe"), "giraffe", Nil, "")
+
+    when (mockIO.getDirectories) thenReturn List("foo")
+    when(mockLoader.getContentFromDirectory("foo")) thenReturn List(anotherTag)
+
+    engine.getAllContentTagLikeThings.toSet shouldBe List(alias, anotherTag, aliasedTag).toSet
+  }
 }

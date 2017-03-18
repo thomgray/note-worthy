@@ -1,7 +1,7 @@
 package com.gray.note.content_things
 
 import com.gray.markdown.{@@, MdHeader, MdString}
-import com.gray.parse.{ParseConstants, ParseResult}
+import com.gray.parse.ParseConstants
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ContentTagSpec extends FlatSpec with MustMatchers with ParseConstants{

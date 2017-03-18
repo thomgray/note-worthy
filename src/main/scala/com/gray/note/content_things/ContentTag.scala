@@ -1,8 +1,8 @@
 package com.gray.note.content_things
 
-import com.gray.markdown.{@@, MdHeader, MdLocation, MdParagraph}
-import com.gray.parse.{AbstractParseResult, Location, ParseConstants, ParseResult}
+import com.gray.markdown.{MdHeader, MdLocation}
 import com.gray.note.util.Formatting
+import com.gray.parse.ParseConstants
 
 import scala.reflect.ClassTag
 

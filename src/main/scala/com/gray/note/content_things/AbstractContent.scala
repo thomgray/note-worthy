@@ -1,9 +1,7 @@
 package com.gray.note.content_things
 
-import com.gray.markdown.{MdLocation, MdParagraph}
-import com.gray.parse.{AbstractParseResult, ParseConstants, ParseResult}
-
-import scala.io.AnsiColor
+import com.gray.markdown.MdLocation
+import com.gray.parse.ParseConstants
 
 abstract class Content extends ParseConstants{
 
