@@ -4,3 +4,4 @@ tasks.txt
 target
 .DS_Store
 build.sh
+lib

@@ -3,7 +3,7 @@ package com.gray.parse
 import com.gray.markdown.{MdHeader, MdParagraph}
 
 trait ContentParser extends ParseConstants {
-  def apply(string: String): List[AbstractParseResult]
+  def apply(string: String, format: String): List[AbstractParseResult]
 }
 
 

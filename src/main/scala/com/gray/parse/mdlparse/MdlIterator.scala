@@ -1,5 +1,6 @@
 package com.gray.parse.mdlparse
 
+import com.gray.markdown.produce.MdParser
 import com.gray.markdown.{MdHeader, MdLocation, MdString}
 import com.gray.note.content_things.MdPlainString
 import com.gray.parse._
@@ -9,23 +10,23 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
 
   val blankRegex = "^\\s*$".r
 
-  def nextThingFrom(marker: Int, lines: Array[String], offset: Int): Option[(AbstractParseResult, Int)] = {
+  def nextThingFrom(marker: Int, lines: Array[String], offset: Int, format: String): Option[(AbstractParseResult, Int)] = {
     val end = lines.length
     getRangeOfNextBlock(marker, lines) match {
       case range@Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start, lines) =>
         val array = lines.slice(marker, start)
-        Some(handleStringLine(array, range.get, offset), start)
+        Some(handleStringLine(array, range.get, offset, format), start)
       case range@Some(Ranj(start, end)) =>
         val array = lines.slice(start, end)
-        Some(handleTagLines(array, range.get, offset), end)
+        Some(handleTagLines(array, range.get, offset, format), end)
       case None if marker < end && !linesAreBlank(marker, end, lines) =>
         val array = lines.slice(marker, lines.length)
-        Some(handleStringLine(array, Ranj(marker, lines.length), offset), end)
+        Some(handleStringLine(array, Ranj(marker, lines.length), offset, format), end)
       case _ => None
     }
   }
 
-  private def handleTagLines(lines: Array[String], ranj: Ranj, offset: Int) = {
+  private def handleTagLines(lines: Array[String], ranj: Ranj, offset: Int, format: String) = {
     val emptySpace = lines.head.substring(0, lines.head.indexOf('['))
     val _lines = lines.map { l =>
       if (l.startsWith(emptySpace)) l.stripPrefix(emptySpace)
@@ -49,10 +50,10 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
     val headerLocation = MdLocation(ranj.start + offset, ranj.start + offset + 1)
 
-    TagParseResult(getResultsFromLines(innerLines, ranj.start + offset), MdHeader(MdString(labels.head, headerLocation), 1, headerLocation), labels.tail)
+    TagParseResult(getResultsFromLines(innerLines, ranj.start + offset + 1, format), MdHeader(MdString(labels.head, headerLocation), 1, headerLocation), labels.tail)
   }
 
-  private def handleStringLine(lines: Array[String], ranj: Ranj, offset: Int) = {
+  private def handleStringLine(lines: Array[String], ranj: Ranj, offset: Int, format: String) = {
     val string1 = trimEmptyLines(lines.mkString("\n"))
     val sensibleLines = string1.split("\n")
 
@@ -60,7 +61,12 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     val colEnd = "\\S*$".r.findFirstMatchIn(sensibleLines.last).get.start + 1
     val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
 
-    StringParseResult(List(MdPlainString(string1, location)))
+    val paragraphs = format match {
+      case "md" => MdParser.parse(string1).paragraphs
+      case _ => List(MdPlainString(string1, location))
+    }
+
+    StringParseResult(paragraphs)
   }
   
   private def handleLink(line: String, ranj: Ranj) = {
@@ -104,10 +110,10 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
       yield true).isEmpty
   }
 
-  protected def getResultsFromLines(lines: Array[String], offset: Int): List[AbstractParseResult] = {
+  protected def getResultsFromLines(lines: Array[String], offset: Int, format: String): List[AbstractParseResult] = {
     var marker = 0
     var list = List.empty[AbstractParseResult]
-    while (nextThingFrom(marker, lines, offset) match {
+    while (nextThingFrom(marker, lines, offset, format) match {
       case Some((res, newMarker)) =>
         list = list :+ res
         marker = newMarker
@@ -117,7 +123,7 @@ object MdlIterator extends ContentParser with MdlParseConstants with Formatting 
     list
   }
 
-  override def apply(string: String): List[AbstractParseResult] =
-    getResultsFromLines(string.split("(\\n|\\r)"), 0)
+  override def apply(string: String, format: String): List[AbstractParseResult] =
+    getResultsFromLines(string.split("(\\n|\\r)"), 0, format)
 
 }

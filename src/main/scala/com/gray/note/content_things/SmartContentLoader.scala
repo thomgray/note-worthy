@@ -11,7 +11,7 @@ object SmartContentLoader extends ContentLoader with MapOne {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
     val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
     val parser = decideOnParser(string, extn)
-    getContent(string, path, parser)
+    getContent(string, path, parser, extn)
   }
 
   private def decideOnParser(string: String, extension: String) = {

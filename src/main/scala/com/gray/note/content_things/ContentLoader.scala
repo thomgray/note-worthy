@@ -19,8 +19,8 @@ import com.gray.parse.mdparse.MdIterator
 trait ContentLoader extends ParseConstants {
   private[content_things] def getParser: ContentParser
 
-  def getContent(string: String, path: String = "", parser: ContentParser = getParser): List[Content] = {
-    val mdParagraphs = parser(string)
+  def getContent(string: String, path: String = "", parser: ContentParser = getParser, extension: String): List[Content] = {
+    val mdParagraphs = parser(string, extension)
     val asContent = translateResultsToContent(mdParagraphs, path)
     extractContentAliasesFromStrings(asContent)
   }
@@ -47,7 +47,7 @@ trait ContentLoader extends ParseConstants {
   def getContentFromFile(path: String) = {
     val extn = "\\w{2,3}$".r.findFirstIn(path).getOrElse("txt")
     val string = io.Source.fromFile(path).mkString.replace("\t", "    ")
-    getContent(string, path, getParser)
+    getContent(string, path, getParser, extn)
   }
 
   def getContentFromDirectory(path: String) = {
