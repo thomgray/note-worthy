@@ -61,7 +61,7 @@ object Terminal {
     override def complete(s: String, i: Int, list: util.List[CharSequence]): Int =
       if (s.trim.startsWith(Config.urlOpenCommand)) {
         val string = s.trim.stripPrefix(Config.urlOpenCommand).trim
-        val links = MainController.resultHandler.currentTagURLS.map(l=>l.url) //.getOrElse(l.url))
+        val links = MainController.resultHandler.currentTagURLS.map(l=>l.label.getOrElse(l.url)) //.getOrElse(l.url))
         links.filter(_.startsWith(string)) match {
           case list if list.length == 1 =>
             console.putString(list.head.stripPrefix(string.trim))
@@ -114,7 +114,7 @@ object Terminal {
   }
 
   def clear = {
-    "tput reset".!
+//    "tput reset".!
     console.clearScreen()
   }
 

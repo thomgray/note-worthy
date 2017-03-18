@@ -73,10 +73,6 @@ class ParsingSteps extends BaseSteps with ParseConstants {
     }
   }
 
-//  Then("""^the result string is equal to the source string$""") { () =>
-//    parseResults.get.string mustBe rawString
-//  }
-
   Then("""^the result is a (content tag|content string|content alias)$""") { (resultType: String) =>
     resultType match {
       case "content tag" => parseResult.get mustBe a [TagParseResult]

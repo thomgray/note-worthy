@@ -25,17 +25,11 @@ trait ResultHandler {
     case string: ContentString => true
     case _ => false
   } flatMap {
-    case tag: ContentTag => MdHeader(MdString(tag.getTitleString, @@(0,0)), 5, @@(0,0)) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
-    case string: ContentString => getMdContentsFromContentString(string)
+    case tag: ContentTag =>
+      tag.header :: tag.get[ContentString].flatMap(_.paragraphs)
+    case string: ContentString =>
+      string.paragraphs
     case other => throw new PendingException(s"need to apply match for tag: $other")
-  }
-
-  private def getMdContentsFromContentString(string: ContentString): List[MdParagraph] = {
-    string.format match {
-      case "txt" => List(MdString(string.getString, @@(0,0)))
-      case "md" => MdParser.parse(string.getString).paragraphs
-      case other => List(MdString("foo", @@(1,1)))
-    }
   }
 
   def gatherLinks(mdParagraphs: List[MdParagraph]) = {
@@ -43,15 +37,24 @@ trait ResultHandler {
   }
 
   private def gatherLinksForParagraph(mdParagraph: MdParagraph): List[MdLink] = mdParagraph match {
-    case string: MdString => string.links()
+    case string: MdString =>
+      string.links()
     case list: MdList[MdListItem] =>
-      list.items.collect({
+      list.items.flatMap(_.paragraphs).collect({
         case linkable: MdLinkable => linkable
       }).flatMap(gatherLinksForParagraph)
     case _ => List.empty
   }
 
   def openURL(string: String) = {
+    currentTagURLS.find(url => url.label.map(_.equals(string)).isDefined) match {
+      case Some(url) =>
+        openActualUrl(url.url)
+      case None => openActualUrl(string)
+    }
+  }
+
+  private def openActualUrl(string: String) = {
     if (string.startsWith("http")){
       s"open $string"!
     }  else s"open https://$string".!
