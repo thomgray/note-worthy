@@ -3,3 +3,5 @@ tasks.txt
 *.iml
 target
 .DS_Store
+build.sh
+lib

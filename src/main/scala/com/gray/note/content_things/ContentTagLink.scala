@@ -1,11 +1,12 @@
 package com.gray.note.content_things
 
-import com.gray.parse.ParseResult
+import com.gray.markdown.MdLocation
 
-class ContentTagLink(result: ParseResult, path: String = "") extends ContentTagLikeThing(result) {
+class ContentTagLink( override val path: String = "") extends ContentTagLikeThing {
   override def isParaphrase: Boolean = ???
 
   override def getString: String = ???
 
-  override val filePath: String = path
+  override val location: MdLocation = ???
+  override val labels: List[String] = ???
 }

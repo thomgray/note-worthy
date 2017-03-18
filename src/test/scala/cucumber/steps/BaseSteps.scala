@@ -1,6 +1,6 @@
 package cucumber.steps
 
-import com.gray.parse.ParseResult
+import com.gray.parse.AbstractParseResult
 import cucumber.api.scala.{EN, ScalaDsl}
 import org.scalatest.{FlatSpec, MustMatchers}
 
@@ -8,8 +8,8 @@ import org.scalatest.{FlatSpec, MustMatchers}
 class BaseSteps extends FlatSpec with ScalaDsl with EN with MustMatchers {
 
   var rawString: String = ""
-  var parseResults: Option[List[ParseResult]] = None
-  var parseResult: Option[ParseResult] = None
+  var parseResults: Option[List[AbstractParseResult]] = None
+  var parseResult: Option[AbstractParseResult] = None
 
 
   Before { f =>

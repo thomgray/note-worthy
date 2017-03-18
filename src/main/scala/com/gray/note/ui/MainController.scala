@@ -1,10 +1,11 @@
 package com.gray.note.ui
 
+import com.gray.markdown.produce.MdParser
 import com.gray.note.Config
 import com.gray.note.Config._
 import com.gray.note.content_things.{ContentRenderer, ContentTag}
 import com.gray.note.handling.{ResultHandler, SearchEngine}
-import com.gray.util.WordIterator
+import com.gray.note.util.WordIterator
 import com.gray.note.ui.SearchHistorian.currentTag
 
 import scala.collection.mutable
@@ -15,6 +16,8 @@ object MainController extends ArgKeys {
 
   val resultHandler = ResultHandler
   val searchEngine = SearchEngine(Config.liveRootDirectory)
+
+  val autoCompleter = new AutoCompleter(searchEngine)
 
   implicit val renderer = new ContentRenderer() {}
 
@@ -77,6 +80,7 @@ object MainController extends ArgKeys {
     historian.setCurrentTagToNone()
     string match {
       case "" => terminal.clear
+        autoCompleter.apply(None)
       case _ => regularSearch(string)
     }
   }
@@ -97,19 +101,22 @@ object MainController extends ArgKeys {
     getMergedResult(string) match {
       case Some(result) =>
         resultHandler.apply(result)
+        autoCompleter.apply(Some(result))
         printTag(result)
       case _ =>
     }
   }
 
-  def getResults(string: String) = currentTag match {
-    case Some(tag) =>
-      val newQuery = tag.getQueryString + string
-      searchEngine.getContentWithQuery(newQuery, Some(tag)) match {
-        case list if list.nonEmpty => list
-        case _ => searchEngine.getContentWithQuery(string)
-      }
-    case None => searchEngine.getContentWithQuery(string)
+  def getResults(string: String) = {
+    currentTag match {
+      case Some(tag) =>
+        val newQuery = tag.getQueryString + string
+        searchEngine.getContentWithQuery(newQuery, Some(tag)) match {
+          case list if list.nonEmpty => list
+          case _ => searchEngine.getContentWithQuery(string)
+        }
+      case None => searchEngine.getContentWithQuery(string)
+    }
   }
 
   def getMergedResult(string: String) = getResults(string) match {
@@ -117,24 +124,20 @@ object MainController extends ArgKeys {
     case _ => None
   }
 
-  def getAutocompletionOptions(string: String): List[String] = currentTag match {
-    case Some(tag) => for {
-      contentTag <- tag.getTagContents
-      label = contentTag.getTitleString
-      if label.startsWith(string)
-    } yield label
-    case _ => List.empty[String]
+  def getAutocompletionOptions(string: String): List[String] = {
+    autoCompleter.autoComplete(string)
   }
 
   def printTag(tag: ContentTag, popResult: Boolean = true) = {
     terminal.clear
     if (popResult) historian.popSearchResult(tag)
-
     println(TagRenderer.getHierarchyDiagram(tag))
     println()
     println(renderer.renderTag(tag, terminal.width))
     println()
   }
+
+
 
 }
 

@@ -28,7 +28,7 @@ class ContentLoaderSteps extends BaseSteps with ParseConstants {
 
   When("""^we take the contents of the content tag$""") { () =>
     val res = loaderResult.get.asInstanceOf[ContentTag]
-    loaderResults = Some(res.getContents)
+    loaderResults = Some(res.contents)
   }
 
   Then("""^the content loader result contains (\d+) values?$""") { (length: Int) =>

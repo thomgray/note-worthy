@@ -1,7 +1,7 @@
 package com.gray.note.ui
 
 import com.gray.note.content_things.{Content, ContentTag}
-import com.gray.util.Formatting
+import com.gray.note.util.Formatting
 
 import scala.io.AnsiColor
 

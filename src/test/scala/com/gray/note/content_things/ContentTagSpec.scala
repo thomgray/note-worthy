@@ -1,16 +1,23 @@
 package com.gray.note.content_things
 
-import com.gray.parse.{ParseConstants, ParseResult}
+import com.gray.markdown.{@@, MdHeader, MdString}
+import com.gray.parse.ParseConstants
 import org.scalatest.{FlatSpec, MustMatchers}
 
 class ContentTagSpec extends FlatSpec with MustMatchers with ParseConstants{
 
   val loader = MdlLoader
-  "ContentTag" should "initialise properly" in {
+  val string1 = MdPlainString("string1", @@(0,0))
+  it should "initialise properly" in {
     //contents not set - that is done by the content loader
-    val tag = new ContentTag(ParseResult("hello", Some(List("hellotag")), CONTENT_TAG, ""))
+    val tag = new ContentTag(
+        List(new ContentString(List(string1), "")),
+        MdHeader(MdString("hellotag", @@(0,1)), 1, @@(0,1)),
+        Nil,
+        ""
+    )
     tag.isParaphrase mustBe false
-    tag.getLabels mustBe List("hellotag")
+    tag.labels mustBe List("hellotag")
   }
 
 

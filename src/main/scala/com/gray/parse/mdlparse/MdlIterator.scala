@@ -1,37 +1,32 @@
 package com.gray.parse.mdlparse
 
-import com.gray.parse.{Location, ParseIterator, ParseResult}
-import com.gray.util.{Formatting, Ranj}
+import com.gray.markdown.produce.MdParser
+import com.gray.markdown.{MdHeader, MdLocation, MdString}
+import com.gray.note.content_things.MdPlainString
+import com.gray.parse._
+import com.gray.note.util.{Formatting, Ranj}
 
-class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset) with MdlParseConstants with Formatting {
-
-  val lines = trimEmptyLines(string).split("(\\n|\\r)")
-
-  def end = lines.length
-
-  private var marker = 0
+object MdlIterator extends ContentParser with MdlParseConstants with Formatting {
 
   val blankRegex = "^\\s*$".r
 
-  override def nextThing: Option[ParseResult] = {
-    getRangeOfNextBlock(marker) match {
-      case range@Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start) =>
+  def nextThingFrom(marker: Int, lines: Array[String], offset: Int, format: String): Option[(AbstractParseResult, Int)] = {
+    val end = lines.length
+    getRangeOfNextBlock(marker, lines) match {
+      case range@Some(Ranj(start, end)) if marker < start && !linesAreBlank(marker, start, lines) =>
         val array = lines.slice(marker, start)
-        marker = start
-        Some(handleStringLine(array, range.get))
+        Some(handleStringLine(array, range.get, offset, format), start)
       case range@Some(Ranj(start, end)) =>
         val array = lines.slice(start, end)
-        marker = end
-        Some(handleTagLines(array, range.get))
-      case None if marker < end && !linesAreBlank(marker, end) =>
+        Some(handleTagLines(array, range.get, offset, format), end)
+      case None if marker < end && !linesAreBlank(marker, end, lines) =>
         val array = lines.slice(marker, lines.length)
-        marker = end
-        Some(handleStringLine(array, Ranj(marker, lines.length)))
+        Some(handleStringLine(array, Ranj(marker, lines.length), offset, format), end)
       case _ => None
     }
   }
 
-  private def handleTagLines(lines: Array[String], ranj: Ranj) = {
+  private def handleTagLines(lines: Array[String], ranj: Ranj, offset: Int, format: String) = {
     val emptySpace = lines.head.substring(0, lines.head.indexOf('['))
     val _lines = lines.map { l =>
       if (l.startsWith(emptySpace)) l.stripPrefix(emptySpace)
@@ -42,7 +37,7 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     val chevronPrefix = s"^\\[{3,}(\\$PARENT_VISIBLE_FLAG|\\$UNIVERSAL_REFERENCE_FLAG|\\$CONTENT_INVISIBLE_FLAG| )*".r.findFirstIn(firstLine).get
 
     val labels = firstLine.stripPrefix(chevronPrefix).split(";").map(_.trim).toList
-    val string = _lines.slice(1, _lines.length-1).mkString("\n")
+    val innerLines = _lines.slice(1, _lines.length-1)
 
     var argString = ""
     if (chevronPrefix.contains(PARENT_VISIBLE_FLAG)) argString += PARENT_VISIBLE_FLAG
@@ -52,20 +47,26 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     val colStart = "\\[{3,}".r.findFirstMatchIn(lines.head).get.end
     val colEnd = "\\]{3,}".r.findFirstMatchIn(lines.last).get.start
 
-    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val headerLocation = MdLocation(ranj.start + offset, ranj.start + offset + 1)
 
-    ParseResult(string, Some(labels), CONTENT_TAG, argString, location)
+    TagParseResult(getResultsFromLines(innerLines, ranj.start + offset + 1, format), MdHeader(MdString(labels.head, headerLocation), 1, headerLocation), labels.tail)
   }
 
-  private def handleStringLine(lines: Array[String], ranj: Ranj) = {
+  private def handleStringLine(lines: Array[String], ranj: Ranj, offset: Int, format: String) = {
     val string1 = trimEmptyLines(lines.mkString("\n"))
     val sensibleLines = string1.split("\n")
 
     val colStart = "\\S".r.findFirstMatchIn(sensibleLines.head).get.end + 1
     val colEnd = "\\S*$".r.findFirstMatchIn(sensibleLines.last).get.start + 1
-    val location = Location(ranj.start + offset, ranj.end + offset, colStart, colEnd)
+    val location = MdLocation(ranj.start + offset, ranj.end + offset, colStart, colEnd)
 
-    ParseResult(string1, None, CONTENT_STRING, "", location)
+    val paragraphs = format match {
+      case "md" => MdParser.parse(string1).paragraphs
+      case _ => List(MdPlainString(string1, location))
+    }
+
+    StringParseResult(paragraphs)
   }
   
   private def handleLink(line: String, ranj: Ranj) = {
@@ -73,8 +74,8 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
   }
 
 
-  def getRangeOfNextBlock(from: Int): Option[Ranj] = {
-    getLineNumberOfNextOpenLine(from) match {
+  def getRangeOfNextBlock(from: Int, lines: Array[String]): Option[Ranj] = {
+    getLineNumberOfNextOpenLine(from, lines) match {
       case Some(i) =>
         var lr = 1
         for (j <- i + 1 until lines.length) {
@@ -88,13 +89,13 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     }
   }
 
-  def getLineNumberOfNextOpenLine(from: Int): Option[Int] =
+  def getLineNumberOfNextOpenLine(from: Int, lines: Array[String]): Option[Int] =
     lines.indexWhere(_.trim.startsWith(openLinePrefix), from) match {
       case -1 => None
       case other => Some(other)
     }
 
-  def getLineNumberOfNextCloseLine(from: Int): Option[Int] = {
+  def getLineNumberOfNextCloseLine(from: Int, lines: Array[String]): Option[Int] = {
     if (from < lines.length) {
       for (i <- from until lines.length) {
         val line = lines(i).trim
@@ -104,13 +105,25 @@ class MdlIterator(string: String, offset: Int = 0) extends ParseIterator(offset)
     } else None
   }
 
-  private def linesAreBlank(start: Int, end: Int) = {
+  private def linesAreBlank(start: Int, end: Int, lines: Array[String]) = {
     (for (i <- start until end if blankRegex.findFirstIn(lines(i)).isEmpty)
       yield true).isEmpty
   }
-}
 
+  protected def getResultsFromLines(lines: Array[String], offset: Int, format: String): List[AbstractParseResult] = {
+    var marker = 0
+    var list = List.empty[AbstractParseResult]
+    while (nextThingFrom(marker, lines, offset, format) match {
+      case Some((res, newMarker)) =>
+        list = list :+ res
+        marker = newMarker
+        true
+      case None => false
+    }){}
+    list
+  }
 
-object MdlIterator {
-  def apply(string: String, linesOffset: Int = 0): MdlIterator = new MdlIterator(string, linesOffset)
+  override def apply(string: String, format: String): List[AbstractParseResult] =
+    getResultsFromLines(string.split("(\\n|\\r)"), 0, format)
+
 }

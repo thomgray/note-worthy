@@ -6,7 +6,7 @@ import com.gray.parse.mdlparse.MdlIterator
 
 class ParsingSteps extends BaseSteps with ParseConstants {
 
-  var parser: Option[ParseIterator] = None
+  var parser: Option[ContentParser] = None
   var tag: Option[ContentTag] = None
 
 
@@ -48,12 +48,8 @@ class ParsingSteps extends BaseSteps with ParseConstants {
   }
 
   When("""^the file is parsed with an mdl parser$""") { () =>
-    parser = Some(MdlIterator(rawString))
-    parseResults = Some(parser.get.iterate)
-  }
-
-  When("""^we parse the (\d+)(st|nd|rd|th) item of the result$""") { (i: Int, arg0: String) =>
-    rawString = parseResults.get(i - 1).string
+    parser = Some(MdlIterator)
+    parseResults = Some(parser.get.apply(rawString, ""))
   }
 
   When("""^we take the (\d+)(st|nd|rd|th) item of the result$""") { (n: Int, arg: String) =>
@@ -70,24 +66,19 @@ class ParsingSteps extends BaseSteps with ParseConstants {
 
   Then("""^the (\d+)(st|nd|rd|th) result is a (content tag|content string|content alias)$""") { (index: Int, arg0: String, resultType: String) =>
     val result = parseResults.get(index - 1)
-    result.description mustBe (resultType match {
-      case "content tag" => CONTENT_TAG
-      case "content string" => CONTENT_STRING
-      case "content alias" => CONTENT_ALIAS
-    })
-  }
-
-  Then("""^the result string is equal to the source string$""") { () =>
-    parseResults.get.head.string mustBe rawString
+    resultType match {
+      case "content tag" => result mustBe a [TagParseResult]
+      case "content string" => result mustBe a [StringParseResult]
+      case "content alias" => result mustBe a [StringParseResult]
+    }
   }
 
   Then("""^the result is a (content tag|content string|content alias)$""") { (resultType: String) =>
-    val description = resultType match {
-      case "content tag" => CONTENT_TAG
-      case "content string" => CONTENT_STRING
-      case "content alias" => CONTENT_ALIAS
+    resultType match {
+      case "content tag" => parseResult.get mustBe a [TagParseResult]
+      case "content string" => parseResult.get mustBe a [StringParseResult]
+      case "content alias" => parseResult.get mustBe a [StringParseResult]
     }
-    parseResult.get.description mustBe description
   }
 
   Then("""^the result is (universally referenced|parent visible|content invisible)$""") { (resultType: String) =>
@@ -96,11 +87,7 @@ class ParsingSteps extends BaseSteps with ParseConstants {
       case "parent visible" => PARENT_VISIBLE_FLAG
       case "content invisible" => CONTENT_INVISIBLE_FLAG
     }
-    parseResult.get.options must include(description)
-  }
-
-  When("""^a tag is initialised with that result$""") { () =>
-    tag = Some(new ContentTag(parseResult.get))
+//    parseResult.get.options must include(description)
   }
 
   Then("""^the tag is content invisible$""") { () =>

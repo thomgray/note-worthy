@@ -1,8 +1,10 @@
 package com.gray.note.handling
 
 import com.gray.markdown._
-import com.gray.markdown.parsing.MdParser
+import com.gray.markdown.produce.MdParser
 import com.gray.note.content_things.{ContentString, ContentTag}
+import sun.security.util.PendingException
+
 import sys.process._
 
 trait ResultHandler {
@@ -18,54 +20,50 @@ trait ResultHandler {
     currentTagURLS = gatherLinks(currentParagraphs)
   }
 
-  def paragraphsForTag(contentTag: ContentTag) = contentTag.getContents filter {
+  def paragraphsForTag(contentTag: ContentTag) = contentTag.contents filter {
     case tag: ContentTag if tag.isParentVisible => true
     case string: ContentString => true
     case _ => false
   } flatMap {
-    case tag: ContentTag => MdHeader(tag.getTitleString, 5) :: tag.get[ContentString].flatMap(getMdContentsFromContentString)
-    case string: ContentString => getMdContentsFromContentString(string)
-  }
-
-  private def getMdContentsFromContentString(string: ContentString): List[MdParagraph] = {
-    string.format match {
-      case "txt" => List(MdPlainString(string.getString))
-      case "md" => MdParser.parse(string.getString)
-    }
+    case tag: ContentTag =>
+      tag.header :: tag.get[ContentString].flatMap(_.paragraphs)
+    case string: ContentString =>
+      string.paragraphs
+    case other => throw new PendingException(s"need to apply match for tag: $other")
   }
 
   def gatherLinks(mdParagraphs: List[MdParagraph]) = {
-    val links = mdParagraphs.flatMap(gatherLinksForParagraph)
-    var linkNumber = 1
-    links.foreach { l => l.index = linkNumber; linkNumber += 1 }
-    links
+    mdParagraphs.flatMap(gatherLinksForParagraph)
   }
 
   private def gatherLinksForParagraph(mdParagraph: MdParagraph): List[MdLink] = mdParagraph match {
-    case string: MdString => string.links.map(_._1)
-    case list: MdList =>
-      list.items.flatMap(_.items.flatMap(gatherLinksForParagraph))
+    case string: MdString =>
+      string.links()
+    case list: MdList[MdListItem] =>
+      list.items.flatMap(_.paragraphs).collect({
+        case linkable: MdLinkable => linkable
+      }).flatMap(gatherLinksForParagraph)
     case _ => List.empty
   }
 
   def openURL(string: String) = {
-    if (string.forall(_.isDigit) && string.toInt < currentTagURLS.length) {
-      val index = string.toInt
-      currentTagURLS(index).open
-    } else {
-      if (string.forall(_.isDigit)) println(s"tried to open an url [$string] but there are not enough links!")
-      currentTagURLS.find(l => l.inlineString.getOrElse(l.url) == string) match {
-        case Some(link) =>
-          link.open
-        case None =>
-      }
+    currentTagURLS.find(url => url.label.map(_.equals(string)).isDefined) match {
+      case Some(url) =>
+        openActualUrl(url.url)
+      case None => openActualUrl(string)
     }
   }
 
+  private def openActualUrl(string: String) = {
+    if (string.startsWith("http")){
+      s"open $string"!
+    }  else s"open https://$string".!
+  }
+
   def openTagInAtom(tag: ContentTag) = {
-    val location = s"${tag.location.lineStart+1}:${tag.location.columnStart+1}"
-    println(s"Opening ${tag.filePath}:$location")
-    s"atom ${tag.filePath}:$location".!
+    val location = s"${tag.location.startLine+1}:${tag.location.startColumn+1}"
+    println(s"Opening ${tag.path}:$location")
+    s"atom ${tag.path}:$location".!
   }
 
   def getNextSiblingTag(contentTag: ContentTag) = contentTag.parentTag match {
@@ -87,6 +85,7 @@ trait ResultHandler {
       }
     case _ => None
   }
+
 
 
 }

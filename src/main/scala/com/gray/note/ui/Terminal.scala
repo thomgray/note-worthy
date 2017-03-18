@@ -19,11 +19,11 @@ object Terminal {
 
   console.addCompleter(new Completer {
     override def complete(s: String, i: Int, list: util.List[CharSequence]): Int = {
-      val options = MainController.getAutocompletionOptions(s.trim)
+      val options = MainController.getAutocompletionOptions(s)
       if (s.trim startsWith Config.resetCurrentTagCommand){
         -1
       }else if (options.length==1) {
-        console.putString(options.head.stripPrefix(s.trim))
+        if (!s.trim.endsWith(options.head.trim)) console.putString(options.head.stripPrefix(s.trim) + " ")
         0
       }
       else if (options.length>1) {
@@ -61,7 +61,7 @@ object Terminal {
     override def complete(s: String, i: Int, list: util.List[CharSequence]): Int =
       if (s.trim.startsWith(Config.urlOpenCommand)) {
         val string = s.trim.stripPrefix(Config.urlOpenCommand).trim
-        val links = MainController.resultHandler.currentTagURLS.map(l=>l.inlineString.getOrElse(l.url))
+        val links = MainController.resultHandler.currentTagURLS.map(l=>l.label.getOrElse(l.url)) //.getOrElse(l.url))
         links.filter(_.startsWith(string)) match {
           case list if list.length == 1 =>
             console.putString(list.head.stripPrefix(string.trim))
@@ -78,16 +78,6 @@ object Terminal {
       0
     }else -1
   })
-
-  def tryThis = {
-    terminal.reset()
-    console.flush()
-    console.readLine()
-    val process =  Runtime.getRuntime.exec(Array[String]("vi", "/tmp/tempFile"))
-    terminal.reset()
-    console.readLine()
-
-  }
 
 
   def finishStringWithAutocompleteOptions(autoCompletes: List[String], string: String) = {
@@ -124,8 +114,8 @@ object Terminal {
   }
 
   def clear = {
-//    "printf \\033c".!
-    "tput reset".!
+//    "tput reset".!
+    console.clearScreen()
   }
 
   def restore = terminal.restore()
