@@ -38,8 +38,8 @@ trait SearchEngine {
     val allTags = allTagsOpt getOrElse getAllContentTagLikeThings
     val matches = fromTag match {
       case None =>
-        allTags.filter(tagMatchesSearchString(_, searchString))
-      case Some(tag) => tag.getAllNestedTagLikeThings.filter(tagMatchesSearchString(_, searchString))
+        allTags.filter(tagMatchesSearchString(_, searchString.toLowerCase))
+      case Some(tag) => tag.getAllNestedTagLikeThings.filter(tagMatchesSearchString(_, searchString.toLowerCase))
     }
     matches flatMap {
       case cta: ContentTagAlias =>
@@ -51,7 +51,7 @@ trait SearchEngine {
 
   def tagMatchesSearchString(tag: ContentTagLikeThing, searchString: String): Boolean = {
     def recTagMatchesString(tag: ContentTagLikeThing, searchString: String): Boolean = {
-      val labels = tag.labels
+      val labels = tag.labels.map(_.toLowerCase)
       val remainders = checkLabelsWithString(labels, searchString)
       if (remainders.isEmpty) false
       else if (remainders.contains("") && (tag.isUniversallyReferenced || tag.parentTag.isEmpty)) {

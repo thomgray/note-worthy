@@ -2,21 +2,17 @@ package com.gray.parse.mdparse
 
 import _root_.com.gray.markdown._
 import com.gray.markdown.produce.MdParser
-import com.gray.note.content_things.MdAlias
+import com.gray.markdown.produce.parsingrules.MdParsingRule
+import com.gray.note.content_things.{MdAlias, MdAliasParsingRule}
 import com.gray.parse._
 
 import scala.util.control.Breaks._
 
 object MdIterator extends ContentParser {
-  val aliasRegex = """^\s*\[(.+)\]\s*<(.*)>\s*$""".r
   protected[mdparse] val headerAltLabelsRegex = """^\s*(.+?)\s*\[(.+)\]\s*$""".r
 
   val mdparser = new MdParser {
-    override val checks: List[(List[String], Int, Int) => Option[(MdParagraph, Int)]] = defaultChecks ++ List(
-      (lines: List[String], marker: Int, offset: Int) => aliasRegex.findFirstMatchIn(lines(marker)) map { mtch =>
-        (MdAlias(mtch.group(2), mtch.group(1), @@(0,0)), marker+1)
-      }
-    )
+    override val checks: List[MdParsingRule] = defaultChecks :+ MdAliasParsingRule
   }
 
   def getMdContent(string: String, path: String, format: String) = {
